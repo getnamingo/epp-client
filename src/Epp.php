@@ -13,7 +13,7 @@ namespace Pinga\Tembo;
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
 use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\SyslogHandler;
 use Monolog\Formatter\LineFormatter;
 
 abstract class Epp implements EppRegistryInterface
@@ -33,25 +33,22 @@ abstract class Epp implements EppRegistryInterface
         $this->requestLogger = new Logger('Request');
         $this->commonLogger = new Logger('Tembo');
 
-        // Define the line format
+        // Optional: format like file logs
         $lineFormat = "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
-        $dateFormat = "Y-m-d H:i:s"; // Customize the date format if needed
-
-        // Create a LineFormatter instance
+        $dateFormat = "Y-m-d H:i:s";
         $formatter = new LineFormatter($lineFormat, $dateFormat);
 
-        // Create handlers - The second parameter is the max number of files to keep (0 means unlimited)
-        // The third parameter is the log level
-        $responseHandler = new RotatingFileHandler(dirname(__FILE__) . '/../../log/response.log', 0, Logger::DEBUG);
-        $requestHandler = new RotatingFileHandler(dirname(__FILE__) . '/../../log/request.log', 0, Logger::DEBUG);
-        $commonHandler = new RotatingFileHandler(dirname(__FILE__) . '/../../log/common.log', 0, Logger::DEBUG);
+        // Create syslog handlers
+        $responseHandler = new SyslogHandler('tembo-response', LOG_USER, Logger::DEBUG);
+        $requestHandler  = new SyslogHandler('tembo-request', LOG_USER, Logger::DEBUG);
+        $commonHandler   = new SyslogHandler('tembo-common', LOG_USER, Logger::DEBUG);
 
-        // Set the formatter to the handlers
+        // Apply formatters
         $responseHandler->setFormatter($formatter);
         $requestHandler->setFormatter($formatter);
         $commonHandler->setFormatter($formatter);
 
-        // Push handlers to the loggers
+        // Attach handlers
         $this->responseLogger->pushHandler($responseHandler);
         $this->requestLogger->pushHandler($requestHandler);
         $this->commonLogger->pushHandler($commonHandler);
