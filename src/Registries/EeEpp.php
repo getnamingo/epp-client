@@ -897,7 +897,7 @@ class EeEpp extends Epp
 <epp xmlns="https://epp.tld.ee/schema/epp-ee-1.0.xsd">
   <command>
     <info>
-      <domain:info xmlns:domain="http://hostmaster.ua/epp/domain-1.1">
+      <domain:info xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd">
         <domain:name>{{ domainname }}</domain:name>
         {{ authInfo }}
       </domain:info>
@@ -908,7 +908,7 @@ class EeEpp extends Epp
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('https://epp.tld.ee/schema/domain-ee-1.0.xsd')->infData;
+            $r = $r->response->resData->children('https://epp.tld.ee/schema/domain-eis-1.0.xsd')->infData;
             $name = (string)$r->name;
             $roid = (string)$r->roid;
             $status = array();
