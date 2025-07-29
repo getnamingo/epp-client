@@ -2,7 +2,7 @@
 /**
  * Tembo EPP client library
  *
- * Written in 2023 by Taras Kondratyuk (https://getpinga.com)
+ * Written in 2023-2025 by Taras Kondratyuk (https://getpinga.com)
  * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
  *
  * @license MIT
@@ -10,6 +10,7 @@
 
 namespace Pinga\Tembo;
 
+use Pinga\Tembo\Registries\EeEpp;
 use Pinga\Tembo\Registries\EuEpp;
 use Pinga\Tembo\Registries\FiEpp;
 use Pinga\Tembo\Registries\FrEpp;
@@ -33,6 +34,9 @@ class EppRegistryFactory
     public static function create($registry)
     {
         switch ($registry) {
+            case 'EE':
+                return new EeEpp();
+                break;
             case 'EU':
                 return new EuEpp();
                 break;

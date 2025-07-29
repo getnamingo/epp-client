@@ -54,7 +54,7 @@ We're on a mission to make **Namingo** the best it can be, and we need your expe
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (36 backends and counting)
+### Registry Support (37 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
@@ -77,6 +77,7 @@ We're on a mission to make **Namingo** the best it can be, and we need your expe
 | Hostmaster | .ua | UA | ✅ | |
 | Identity Digital | all | | ✅ | |
 | IIS | .se, .nu | SE | ✅ | |
+| Internet.ee | .ee | EE | ✅ | |
 | HKIRC | .hk | HK | ✅ | |
 | NASK | .pl | PL | ✅ | |
 | Namingo | all | | ✅ | |
