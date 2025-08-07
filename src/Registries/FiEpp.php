@@ -57,6 +57,10 @@ class FiEpp extends Epp
             $to[] = htmlspecialchars($params['companyname']);
             $from[] = '/{{ registernumber }}/';
             $to[] = htmlspecialchars($params['registernumber']);
+            $from[] = '/{{ identity }}/';
+            $to[] = htmlspecialchars($params['identity']);
+            $from[] = '/{{ birthDate }}/';
+            $to[] = htmlspecialchars($params['birthDate']);
             $from[] = '/{{ street1 }}/';
             $to[] = htmlspecialchars($params['address1']);
             $from[] = '/{{ street2 }}/';
@@ -98,7 +102,9 @@ class FiEpp extends Epp
           <contact:isfinnish>{{ isfinnish }}</contact:isfinnish> 
           <contact:name>{{ name }}</contact:name>
           <contact:org>{{ org }}</contact:org>
-          <contact:registernumber>{{ registernumber }}</contact:registernumber> 
+          <contact:identity>{{ identity }}</contact:identity>
+          <contact:registernumber>{{ registernumber }}</contact:registernumber>
+          <contact:birthDate>{{ birthDate }}</contact:birthDate>
           <contact:addr>
             <contact:street>{{ street1 }}</contact:street>
             <contact:street>{{ street2 }}</contact:street>
