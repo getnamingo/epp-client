@@ -300,18 +300,16 @@ class FiEpp extends Epp
             $r = $this->writeRequest($xml);
             $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
 
-            // Step 2: Parse existing nameservers
             $currentNs = array();
+
+            // Handle <hostAttr>
             foreach ($r->ns->hostAttr as $hostAttr) {
                 $hostName = (string)$hostAttr->hostName;
-
-                // Initialize IPv4 and IPv6 as empty
                 $ipv4 = '';
                 $ipv6 = '';
 
-                // Parse <domain:hostAddr> elements
                 foreach ($hostAttr->hostAddr as $hostAddr) {
-                    $ipType = (string)$hostAddr->attributes()->ip; // Get the 'ip' attribute (v4 or v6)
+                    $ipType = (string)$hostAddr->attributes()->ip;
                     if ($ipType === 'v4') {
                         $ipv4 = (string)$hostAddr;
                     } elseif ($ipType === 'v6') {
@@ -319,12 +317,17 @@ class FiEpp extends Epp
                     }
                 }
 
-                // Add to the current nameservers list
                 $currentNs[$hostName] = array_filter([
                     'hostName' => $hostName,
                     'ipv4' => $ipv4,
                     'ipv6' => $ipv6
                 ]);
+            }
+
+            // Handle <hostObj>
+            foreach ($r->ns->hostObj as $hostObj) {
+                $hostName = (string)$hostObj;
+                $currentNs[$hostName] = ['hostName' => $hostName];
             }
 
             // Step 3: Determine changes (additions, removals)
