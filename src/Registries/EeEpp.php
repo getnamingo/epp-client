@@ -32,7 +32,7 @@ class EeEpp extends Epp
     {
         $xml->startElement('svcExtension');
         $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
-        $xml->writeElement('extURI', 'https://epp.tld.ee/schema/');
+        $xml->writeElement('extURI', 'https://epp.tld.ee/schema/eis-1.0.xsd');
         $xml->endElement(); // svcExtension
     }
 
