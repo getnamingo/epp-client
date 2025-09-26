@@ -27,11 +27,9 @@ function connectEpp(string $registry) {
             'bindip' => '1.2.3.4:0',
             'verify_peer' => false,
             'verify_peer_name' => false,
-            //For EPP-over-HTTPS , change false to 2
-            'verify_host' => false,
             'cafile' => '',
-            'local_cert' => '/root/tembo/cert.pem',
-            'local_pk' => '/root/tembo/key.pem',
+            'local_cert' => realpath(__DIR__ . '/../cert.pem'),
+            'local_pk'   => realpath(__DIR__ . '/../key.pem'),
             'passphrase' => '',
             'allow_self_signed' => true
         );

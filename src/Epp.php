@@ -72,7 +72,6 @@ abstract class Epp implements EppRegistryInterface
             'ssl' => array(
             'verify_peer' => (bool)$params['verify_peer'],
             'verify_peer_name' => (bool)$params['verify_peer_name'],
-            'verify_host' => (bool)$params['verify_host'],
             'cafile' => (string)$params['cafile'],
             'local_cert' => (string)$params['local_cert'],
             'local_pk' => (string)$params['local_pk'],

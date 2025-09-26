@@ -29,7 +29,6 @@ function connectEpp (string $registry) {
             'bindip' => '1.2.3.4:0',
             'verify_peer' => false,
             'verify_peer_name' => false,
-            'verify_host' => false,
             'cafile' => '',
             'local_cert' => $result['local_cert'],
             'local_pk' => $result['local_pk'],

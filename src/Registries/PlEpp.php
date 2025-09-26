@@ -31,7 +31,7 @@ class PlEpp extends Epp
         curl_setopt($ch, CURLOPT_PORT, (int)$params['port']);
         curl_setopt($ch, CURLOPT_TIMEOUT, (int)$params['timeout']);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, (bool)$params['verify_peer']);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $params['verify_host']);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $params['verify_peer_name'] ? 2 : 0);
         if ($params['cafile']) {
             curl_setopt($ch, CURLOPT_CAINFO, (string)$params['cafile']);
         }
