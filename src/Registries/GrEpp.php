@@ -40,6 +40,10 @@ class GrEpp extends Epp
         if ($params['passphrase']) {
             curl_setopt($ch, CURLOPT_SSLKEYPASSWD, (string)$params['passphrase']);
         }
+        if (!empty($params['bind']) && !empty($params['bindip'])) {
+            $iface = preg_replace('/:\d+$/', '', (string)$params['bindip']);
+            curl_setopt($ch, CURLOPT_INTERFACE, $iface);
+        }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
@@ -48,8 +52,10 @@ class GrEpp extends Epp
         curl_setopt($ch, CURLOPT_COOKIEFILE, sys_get_temp_dir() . '/eppcookie.txt');
         $this->resource = curl_exec($ch);
 
-        if (!$this->resource) {
-            throw new EppException("Cannot connect to server '{$host}': {$errmsg}");
+        if ($this->resource === false) {
+            $errmsg = curl_error($ch);
+            $errno  = curl_errno($ch);
+            throw new EppException("Cannot connect to server '{$host}': [{$errno}] {$errmsg}");
         }
 
         $this->ch = $ch;
