@@ -1,20 +1,21 @@
 # Namingo EPP Client
 
-An open-source PHP EPP client supporting 36 domain registry backends. Works with any PHP framework and is fully customizable.
+An open-source PHP EPP client supporting 37 domain registry backends. Works with any PHP framework and is fully customizable.
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
 [![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
-## Introduction
+## Introduction  
 
-**Namingo EPP** is an open-source PHP EPP client that enables seamless connection to EPP servers for domain registration and management. It supports multiple EPP extensions, integrates easily with any PHP framework, and is fully customizable for various domain registries.
+**Namingo EPP** is an open-source PHP library and tool for working with EPP (Extensible Provisioning Protocol). It provides everything you need to connect to EPP servers, manage domains, and build custom integrations.  
 
-The client also provides EPP modules for WHMCS and FOSSBilling, supporting all essential features for efficient domain management.
+- Works as both a **library** for developers and a **ready-to-use client**  
+- Includes **Loom**, **WHMCS** and **FOSSBilling** registrar modules for easy automation  
+- Supports EPP extensions and can be **extended to new backends** with minimal effort  
+- Simple to integrate into any PHP project  
 
-## Get Involved
-
-We're on a mission to make **Namingo** the best it can be, and we need your expertise! Whether you're adept in development, have a keen eye for design, or simply brim with innovative ideas, your contribution can make a world of difference.
+With Namingo EPP you can start small, customize as you go, and adapt it to the specific requirements of any domain registry.  
 
 ## Features
 
@@ -50,6 +51,7 @@ We're on a mission to make **Namingo** the best it can be, and we need your expe
 |----------|----------|
 | EPP over TLS/TCP | ✅ |
 | EPP over HTTPS | ✅ |
+| RPP | 🚧 |
 | RRI | ✅ |
 | TMCH | ✅ |
 | REGRR | ❌ |
@@ -91,7 +93,7 @@ We're on a mission to make **Namingo** the best it can be, and we need your expe
 | RyCE | all | | ✅ | |
 | SIDN | all | | ✅ | |
 | SWITCH | .ch, .li | | ✅ | |
-| Traficom | .fi | FI | ✅ | only org contacts |
+| Traficom | .fi | FI | ✅ | |
 | Verisign | all | VRSN | ✅ | |
 | ZADNA | .za |  | ✅ | |
 | ZDNS | all |  | ✅ | |
@@ -105,8 +107,11 @@ Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EP
 | Registry | TLDs | Status | Project |
 |----------|----------|----------|----------|
 | Generic RFC EPP | any | ✅ | [whmcs-epp-rfc](https://github.com/getpinga/whmcs-epp-rfc) |
-| Hostmaster | .ua | ✅ | [whmcs-epp-ua](https://github.com/getpinga/whmcs-epp-ua) |
+| Generic RFC EPP (ICANN) | any | ✅ | [registrar-whmcs-epp-rfc](https://github.com/getnamingo/registrar-whmcs-epp-rfc) |
+| CoCCA | any | ✅ | [whmcs-epp-cocca](https://github.com/getnamingo/whmcs-epp-cocca) |
 | EURid | .eu | ✅ | [whmcs-epp-eurid](https://github.com/getpinga/whmcs-epp-eurid) |
+| Hostmaster | .ua | ✅ | [whmcs-epp-ua](https://github.com/getpinga/whmcs-epp-ua) |
+| Verisign | all | ✅ | [registrar-whmcs-epp-verisign](https://github.com/getnamingo/registrar-whmcs-epp-verisign) |
 
 #### FOSSBilling
 
@@ -117,12 +122,13 @@ Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EP
 | Caucasus Online | .ge | ✅ | [fossbilling-epp-ge](https://github.com/getpinga/fossbilling-epp-ge) |
 | FRED | .cz/any | ✅ | [fossbilling-epp-fred](https://github.com/getpinga/fossbilling-epp-fred) |
 | Hostmaster | .ua | ✅ | [fossbilling-epp-ua](https://github.com/getpinga/fossbilling-epp-ua) |
+| Verisign | all | ✅ | [fossbilling-epp-verisign](https://github.com/getnamingo/fossbilling-epp-verisign) |
 
 ## Documentation
 
 ### Installation
 
-To begin, follow these steps for setting up the EPP Client. This installation process is optimized for a VPS running Ubuntu 22.04/24.04 or Debian 12.
+To begin, follow these steps for setting up the EPP Client. This installation process is optimized for a VPS running Ubuntu 22.04/24.04 or Debian 12/13.
 
 #### 1. Install PHP
 
@@ -201,7 +207,7 @@ If the steps above don’t resolve your issue, refer to the EPP Client logs (`/p
 
 ### Benchmarking an EPP Server
 
-To run tests against an EPP server using the Tembo EPP client, follow these steps:
+To run tests against an EPP server using the Namingo EPP client, follow these steps:
 
 #### 1. Configure Your Connection
 
