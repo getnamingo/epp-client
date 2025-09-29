@@ -51,9 +51,9 @@ class NoEpp extends Epp
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['hostname']);
             $from[] = '/{{ ip }}/';
-            $to[] = htmlspecialchars($params['ipaddress']);
+            $to[] = htmlspecialchars($params['ipaddress'] ?? '');
             $from[] = '/{{ v }}/';
-            $to[] = (preg_match('/:/', $params['ipaddress']) ? 'v6' : 'v4');
+            $to[] = (preg_match('/:/', $params['ipaddress'] ?? '') ? 'v6' : 'v4');
             if (!empty($params['contact'])) {
                 $from[] = '/{{ contact }}/';
                 $to[] = htmlspecialchars($params['contact']);
@@ -61,7 +61,7 @@ class NoEpp extends Epp
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-host-create-' . $clTRID);
-            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $from[] = "/<\w+:\w+(?:\s+[^>]*)?>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">

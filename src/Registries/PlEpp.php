@@ -381,10 +381,6 @@ class PlEpp extends Epp
             $to[] = htmlspecialchars($params['ipaddress']);
             $from[] = '/{{ v }}/';
             $to[] = (preg_match('/:/', $params['ipaddress']) ? 'v6' : 'v4');
-            if (!empty($params['contact'])) {
-                $from[] = '/{{ contact }}/';
-                $to[] = htmlspecialchars($params['contact']);
-            }
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-host-create-' . $clTRID);
