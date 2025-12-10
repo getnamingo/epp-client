@@ -17,9 +17,9 @@ function connectEpp(string $registry) {
     {
         $epp = EppRegistryFactory::create($registry);
         $info = array(
-            //For EPP-over-HTTPS,  'host' => 'https://registry.example.com/epp',
+            // for EPP-over-HTTPS,  'host' => 'https://registry.example.com/epp',
             'host' => 'epp.example.com',
-            //For EPP-over-HTTPS , port is usually 443
+            // for EPP-over-HTTPS , port is usually 443
             'port' => 700,
             'timeout' => 30,
             'tls' => '1.2', // Change to 1.3 if required
@@ -31,8 +31,18 @@ function connectEpp(string $registry) {
             'local_cert' => realpath(__DIR__ . '/../cert.pem'),
             'local_pk'   => realpath(__DIR__ . '/../key.pem'),
             'passphrase' => '',
-            'allow_self_signed' => true
+            'allow_self_signed' => true,
+            // per-registry login extensions go here
+            'loginExtensions' => [
+                'urn:ietf:params:xml:ns:secDNS-1.1',
+                'urn:ietf:params:xml:ns:rgp-1.0'
+                // add for example:
+                // 'urn:ietf:params:xml:ns:fee-0.7',
+            ],
         );
+        if (!empty($info['loginExtensions'])) {
+            $epp->setLoginExtensions($info['loginExtensions']);
+        }
         $epp->connect($info);
         $login = $epp->login(array(
             'clID' => 'testregistrar1',

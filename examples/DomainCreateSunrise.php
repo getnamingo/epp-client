@@ -8,24 +8,62 @@
  * @license MIT
  */
 
+/**
+ * To run this demo using a second test account:
+ *
+ * 1) Replace the include:
+ *      require_once __DIR__ . '/Connection.php';
+ *    with:
+ *      require_once __DIR__ . '/Connection2.php';
+ *
+ * 2) Replace:
+ *      $epp = connectEpp('generic');
+ *    with:
+ *      $epp = connectEpp2('generic');
+ *
+ * This allows testing with two separate credentials
+ * without changing the code logic.
+ */
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
     $epp = connectEpp('generic');
-    
-    $params = array(
+
+    $params = [
         'domainname' => 'test.example',
-        'period' => 1,
+        'period'     => 1,
+
+        // ------------------------------------------------------------------
+        // [A] CONTACTS
+        // ------------------------------------------------------------------
+        //
+        // If the registry DOES support registrant/admin/tech/billing contacts,
+        // keep or adjust this block.
+        //
+        // If the registry does NOT use contacts, DELETE or COMMENT OUT
+        // the whole section below.
+        //
         'registrant' => 'tembo007',
-        'contacts' => array(
-           'admin' => 'tembo007',
-           'tech' => 'tembo007'
-        ),
+        'contacts' => [
+            'admin'   => 'tembo007',
+            'tech'    => 'tembo007',
+            'billing' => 'tembo007',
+        ],
+
+        // ------------------------------------------------------------------
+        // AUTH-INFO PASSWORD
+        // ------------------------------------------------------------------
         'authInfoPw' => 'Domainpw123@',
+
+        // ------------------------------------------------------------------
+        // ENCODED SIGNED MARK
+        // ------------------------------------------------------------------
         'encodedSignedMark' => 'INSERT_HERE'
-    );
+    ];
+
     $domainCreateSunrise = $epp->domainCreateSunrise($params);
 
     if (array_key_exists('error', $domainCreateSunrise))

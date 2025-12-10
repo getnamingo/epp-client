@@ -22,6 +22,15 @@ abstract class Epp implements EppRegistryInterface
     protected $isLoggedIn;
     protected $prefix;
 
+    /**
+     * Default login extensions.
+     * Can be overridden via setLoginExtensions()
+     */
+    protected $loginExtensions = [
+        'urn:ietf:params:xml:ns:secDNS-1.1',
+        'urn:ietf:params:xml:ns:rgp-1.0',
+    ];
+
     public function __construct()
     {
         if (!extension_loaded('SimpleXML')) {
@@ -259,7 +268,7 @@ abstract class Epp implements EppRegistryInterface
 
         return $return;
     }
-    
+
     protected function addLoginObjects(\XMLWriter $xml): void
     {
         $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:domain-1.0');
@@ -269,10 +278,22 @@ abstract class Epp implements EppRegistryInterface
 
     protected function addLoginExtensions(\XMLWriter $xml): void
     {
+        if (empty($this->loginExtensions)) {
+            return;
+        }
+
         $xml->startElement('svcExtension');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:rgp-1.0');
-        $xml->endElement(); // svcExtension
+
+        foreach ($this->loginExtensions as $uri) {
+            $xml->writeElement('extURI', $uri);
+        }
+
+        $xml->endElement();
+    }
+
+    public function setLoginExtensions(array $extURIs): void
+    {
+        $this->loginExtensions = $extURIs;
     }
 
     /**
@@ -1950,25 +1971,42 @@ abstract class Epp implements EppRegistryInterface
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
-            if (isset($params['nss'])) {
-                $text = '';
-                foreach ($params['nss'] as $hostObj) {
-                    $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
-                }
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = $text;
-            } else {
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = '';
-            }
-            $from[] = '/{{ registrant }}/';
-            $to[] = htmlspecialchars($params['registrant']);
+
             $text = '';
-        foreach ($params['contacts'] as $contactType => $contactID) {
-            $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
-        }
+            if (!empty($params['nss']) && is_array($params['nss'])) {
+                foreach ($params['nss'] as $hostObj) {
+                    if (!is_array($hostObj)) {
+                        $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
+                        continue;
+                    }
+
+                    $text .= "<domain:hostAttr>\n";
+                    if (!empty($hostObj['hostName'])) {
+                        $text .= '  <domain:hostName>' . htmlspecialchars($hostObj['hostName']) . "</domain:hostName>\n";
+                    }
+                    if (!empty($hostObj['ipv4'])) {
+                        $text .= '  <domain:hostAddr ip="v4">' . htmlspecialchars($hostObj['ipv4']) . "</domain:hostAddr>\n";
+                    }
+                    if (!empty($hostObj['ipv6'])) {
+                        $text .= '  <domain:hostAddr ip="v6">' . htmlspecialchars($hostObj['ipv6']) . "</domain:hostAddr>\n";
+                    }
+                    $text .= "</domain:hostAttr>\n";
+                }
+            }
+            $from[] = '/{{ hostObjs }}/';
+            $to[]   = $text;
+
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $text = '';
+            if (!empty($params['contacts']) && is_array($params['contacts'])) {
+                foreach ($params['contacts'] as $contactType => $contactID) {
+                    $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
+                }
+            }
             $from[] = '/{{ contacts }}/';
             $to[] = $text;
+
             $from[] = '/{{ authInfoPw }}/';
             $to[] = htmlspecialchars($params['authInfoPw']);
             $from[] = '/{{ clTRID }}/';
@@ -2042,25 +2080,42 @@ abstract class Epp implements EppRegistryInterface
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
-            if (isset($params['nss'])) {
-                $text = '';
-                foreach ($params['nss'] as $hostObj) {
-                    $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
-                }
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = $text;
-            } else {
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = '';
-            }
-            $from[] = '/{{ registrant }}/';
-            $to[] = htmlspecialchars($params['registrant']);
+
             $text = '';
-        foreach ($params['contacts'] as $contactType => $contactID) {
-            $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
-        }
+            if (!empty($params['nss']) && is_array($params['nss'])) {
+                foreach ($params['nss'] as $hostObj) {
+                    if (!is_array($hostObj)) {
+                        $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
+                        continue;
+                    }
+
+                    $text .= "<domain:hostAttr>\n";
+                    if (!empty($hostObj['hostName'])) {
+                        $text .= '  <domain:hostName>' . htmlspecialchars($hostObj['hostName']) . "</domain:hostName>\n";
+                    }
+                    if (!empty($hostObj['ipv4'])) {
+                        $text .= '  <domain:hostAddr ip="v4">' . htmlspecialchars($hostObj['ipv4']) . "</domain:hostAddr>\n";
+                    }
+                    if (!empty($hostObj['ipv6'])) {
+                        $text .= '  <domain:hostAddr ip="v6">' . htmlspecialchars($hostObj['ipv6']) . "</domain:hostAddr>\n";
+                    }
+                    $text .= "</domain:hostAttr>\n";
+                }
+            }
+            $from[] = '/{{ hostObjs }}/';
+            $to[]   = $text;
+
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $text = '';
+            if (!empty($params['contacts']) && is_array($params['contacts'])) {
+                foreach ($params['contacts'] as $contactType => $contactID) {
+                    $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
+                }
+            }
             $from[] = '/{{ contacts }}/';
             $to[] = $text;
+
             $from[] = '/{{ authInfoPw }}/';
             $to[] = htmlspecialchars($params['authInfoPw']);
             if ($params['dnssec_records'] == 1) {
@@ -2162,25 +2217,42 @@ abstract class Epp implements EppRegistryInterface
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
-            if (isset($params['nss'])) {
-                $text = '';
-                foreach ($params['nss'] as $hostObj) {
-                    $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
-                }
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = $text;
-            } else {
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = '';
-            }
-            $from[] = '/{{ registrant }}/';
-            $to[] = htmlspecialchars($params['registrant']);
+
             $text = '';
-        foreach ($params['contacts'] as $contactType => $contactID) {
-            $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
-        }
+            if (!empty($params['nss']) && is_array($params['nss'])) {
+                foreach ($params['nss'] as $hostObj) {
+                    if (!is_array($hostObj)) {
+                        $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
+                        continue;
+                    }
+
+                    $text .= "<domain:hostAttr>\n";
+                    if (!empty($hostObj['hostName'])) {
+                        $text .= '  <domain:hostName>' . htmlspecialchars($hostObj['hostName']) . "</domain:hostName>\n";
+                    }
+                    if (!empty($hostObj['ipv4'])) {
+                        $text .= '  <domain:hostAddr ip="v4">' . htmlspecialchars($hostObj['ipv4']) . "</domain:hostAddr>\n";
+                    }
+                    if (!empty($hostObj['ipv6'])) {
+                        $text .= '  <domain:hostAddr ip="v6">' . htmlspecialchars($hostObj['ipv6']) . "</domain:hostAddr>\n";
+                    }
+                    $text .= "</domain:hostAttr>\n";
+                }
+            }
+            $from[] = '/{{ hostObjs }}/';
+            $to[]   = $text;
+
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $text = '';
+            if (!empty($params['contacts']) && is_array($params['contacts'])) {
+                foreach ($params['contacts'] as $contactType => $contactID) {
+                    $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
+                }
+            }
             $from[] = '/{{ contacts }}/';
             $to[] = $text;
+
             $from[] = '/{{ authInfoPw }}/';
             $to[] = htmlspecialchars($params['authInfoPw']);
             $from[] = '/{{ noticeID }}/';
@@ -2270,14 +2342,18 @@ abstract class Epp implements EppRegistryInterface
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
+
             $from[] = '/{{ registrant }}/';
-            $to[] = htmlspecialchars($params['registrant']);
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
             $text = '';
-        foreach ($params['contacts'] as $contactType => $contactID) {
-            $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
-        }
+            if (!empty($params['contacts']) && is_array($params['contacts'])) {
+                foreach ($params['contacts'] as $contactType => $contactID) {
+                    $text .= '<domain:contact type="' . $contactType . '">' . $contactID . '</domain:contact>' . "\n";
+                }
+            }
             $from[] = '/{{ contacts }}/';
             $to[] = $text;
+
             $from[] = '/{{ authInfoPw }}/';
             $to[] = htmlspecialchars($params['authInfoPw']);
             $from[] = '/{{ encodedSignedMark }}/';

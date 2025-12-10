@@ -8,28 +8,105 @@
  * @license MIT
  */
 
+/**
+ * To run this demo using a second test account:
+ *
+ * 1) Replace the include:
+ *      require_once __DIR__ . '/Connection.php';
+ *    with:
+ *      require_once __DIR__ . '/Connection2.php';
+ *
+ * 2) Replace:
+ *      $epp = connectEpp('generic');
+ *    with:
+ *      $epp = connectEpp2('generic');
+ *
+ * This allows testing with two separate credentials
+ * without changing the code logic.
+ */
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
     $epp = connectEpp('generic');
-    
-    $params = array(
+
+    $params = [
         'domainname' => 'test.example',
-        'period' => 1,
-        'nss' => array('ns1.google.com','ns2.google.com'),
+        'period'     => 1,
+
+        // ------------------------------------------------------------------
+        // [A] NAMESERVERS AS <domain:hostObj>
+        // ------------------------------------------------------------------
+        //
+        // Use this if the registry expects hostObj (just hostnames, often when
+        // glue/host objects are handled separately).
+        //
+        // - KEEP this block if you want hostObj
+        // - COMMENT this block out if you want hostAttr (see [B] below)
+        //
+        'nss' => [
+            'ns1.google.com',
+            'ns2.google.com',
+        ],
+
+        // ------------------------------------------------------------------
+        // [B] NAMESERVERS AS <domain:hostAttr>
+        // ------------------------------------------------------------------
+        //
+        // Use this if the registry expects hostAttr (host + optional IPs)
+        // directly inside the domain:create.
+        //
+        // - COMMENT OUT the block in [A] above
+        // - UNCOMMENT the block below
+        //
+        /*
+        'nss' => [
+            [
+                'hostName' => 'ns.test.it',
+                'ipv4'     => '192.168.100.10',
+            ],
+            [
+                'hostName' => 'ns2.test.it',
+                'ipv4'     => '192.168.100.20',
+            ],
+            [
+                'hostName' => 'ns3.foo.com', // no glue IP
+            ],
+        ],
+        */
+
+        // ------------------------------------------------------------------
+        // [C] CONTACTS
+        // ------------------------------------------------------------------
+        //
+        // If the registry DOES support registrant/admin/tech/billing contacts,
+        // keep or adjust this block.
+        //
+        // If the registry does NOT use contacts, DELETE or COMMENT OUT
+        // the whole section below.
+        //
         'registrant' => 'tembo007',
-        'contacts' => array(
-           'admin' => 'tembo007',
-           'tech' => 'tembo007',
-           'billing' => 'tembo007'
-        ),
+        'contacts' => [
+            'admin'   => 'tembo007',
+            'tech'    => 'tembo007',
+            'billing' => 'tembo007',
+        ],
+
+        // ------------------------------------------------------------------
+        // AUTH-INFO PASSWORD
+        // ------------------------------------------------------------------
         'authInfoPw' => 'Domainpw123@',
+
+        // ------------------------------------------------------------------
+        // CLAIMS NOTICE DETAILS
+        // ------------------------------------------------------------------
         'noticeID' => 'ABCDE1234FGHIJK5678',
         'notAfter' => '2023-02-24T09:30:00.0Z',
         'acceptedDate' => '2023-02-21T09:30:00.0Z'
-    );
+    ];
+
     $domainCreateClaims = $epp->domainCreateClaims($params);
 
     if (array_key_exists('error', $domainCreateClaims))

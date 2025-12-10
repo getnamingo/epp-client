@@ -8,40 +8,107 @@
  * @license MIT
  */
 
+/**
+ * To run this demo using a second test account:
+ *
+ * 1) Replace the include:
+ *      require_once __DIR__ . '/Connection.php';
+ *    with:
+ *      require_once __DIR__ . '/Connection2.php';
+ *
+ * 2) Replace:
+ *      $epp = connectEpp('generic');
+ *    with:
+ *      $epp = connectEpp2('generic');
+ *
+ * This allows testing with two separate credentials
+ * without changing the code logic.
+ */
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
     $epp = connectEpp('generic');
-    
-    $params = array(
+
+    /**
+     * DOMAIN CREATE PARAMS
+     *
+     * Adjust ONLY the blocks marked:
+     *   - [A] Nameservers as <domain:hostObj>
+     *   - [B] Nameservers as <domain:hostAttr>
+     *   - [C] Contacts (remove if registry does not use them)
+     */
+
+    $params = [
         'domainname' => 'test.example',
-        'period' => 1,
-        // For TLDs that require the <domain:hostAttr> element (e.g., when assigning nameservers with specific IP addresses),
-        // comment out the next line and uncomment the one below to include hostAttr details in the EPP request.
-        'nss' => array('ns1.google.com','ns2.google.com'),
-        /*'nss' => array(
-            array(
+        'period'     => 1,
+
+        // ------------------------------------------------------------------
+        // [A] NAMESERVERS AS <domain:hostObj>
+        // ------------------------------------------------------------------
+        //
+        // Use this if the registry expects hostObj (just hostnames, often when
+        // glue/host objects are handled separately).
+        //
+        // - KEEP this block if you want hostObj
+        // - COMMENT this block out if you want hostAttr (see [B] below)
+        //
+        'nss' => [
+            'ns1.google.com',
+            'ns2.google.com',
+        ],
+
+        // ------------------------------------------------------------------
+        // [B] NAMESERVERS AS <domain:hostAttr>
+        // ------------------------------------------------------------------
+        //
+        // Use this if the registry expects hostAttr (host + optional IPs)
+        // directly inside the domain:create.
+        //
+        // - COMMENT OUT the block in [A] above
+        // - UNCOMMENT the block below
+        //
+        /*
+        'nss' => [
+            [
                 'hostName' => 'ns.test.it',
-                'ipv4' => '192.168.100.10'
-            ),
-            array(
+                'ipv4'     => '192.168.100.10',
+            ],
+            [
                 'hostName' => 'ns2.test.it',
-                'ipv4' => '192.168.100.20'
-            ),
-            array(
-                'hostName' => 'ns3.foo.com'
-            )
-        ),*/
+                'ipv4'     => '192.168.100.20',
+            ],
+            [
+                'hostName' => 'ns3.foo.com', // no glue IP
+            ],
+        ],
+        */
+
+        // ------------------------------------------------------------------
+        // [C] CONTACTS
+        // ------------------------------------------------------------------
+        //
+        // If the registry DOES support registrant/admin/tech/billing contacts,
+        // keep or adjust this block.
+        //
+        // If the registry does NOT use contacts, DELETE or COMMENT OUT
+        // the whole section below.
+        //
         'registrant' => 'tembo007',
-        'contacts' => array(
-           'admin' => 'tembo007',
-           'tech' => 'tembo007',
-           'billing' => 'tembo007'
-        ),
-        'authInfoPw' => 'Domainpw123@'
-    );
+        'contacts' => [
+            'admin'   => 'tembo007',
+            'tech'    => 'tembo007',
+            'billing' => 'tembo007',
+        ],
+
+        // ------------------------------------------------------------------
+        // AUTH-INFO PASSWORD
+        // ------------------------------------------------------------------
+        'authInfoPw' => 'Domainpw123@',
+    ];
+
     $domainCreate = $epp->domainCreate($params);
 
     if (array_key_exists('error', $domainCreate))
