@@ -8,46 +8,56 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'contact' => 'tembo007'
-    );
-    $contactInfo = $epp->contactInfo($params);
-    
-    if (array_key_exists('error', $contactInfo))
-    {
+    $contactInfo = $epp->contactInfo([
+        'contact' => 'tembo007',
+    ]);
+
+    if (isset($contactInfo['error'])) {
         echo 'ContactInfo Error: ' . $contactInfo['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'ContactInfo Result: ' . $contactInfo['code'] . ': ' . $contactInfo['msg'] . PHP_EOL;
-        echo 'ID: ' . $contactInfo['id'] . PHP_EOL;
-        echo 'ROID: ' . $contactInfo['roid'] . PHP_EOL;
-        echo 'Name: ' . $contactInfo['name'] . PHP_EOL;
-        echo 'Org: ' . $contactInfo['org'] . PHP_EOL;
-        echo 'Street 1: ' . $contactInfo['street1'] . PHP_EOL;
-        echo 'Street 2: ' . $contactInfo['street2'] . PHP_EOL;
-        echo 'Street 3: ' . $contactInfo['street3'] . PHP_EOL;
-        echo 'City: ' . $contactInfo['city'] . PHP_EOL;
-        echo 'State: ' . $contactInfo['state'] . PHP_EOL;
-        echo 'Postal: ' . $contactInfo['postal'] . PHP_EOL;
-        echo 'Country: ' . $contactInfo['country'] . PHP_EOL;
-        echo 'Voice: ' . $contactInfo['voice'] . PHP_EOL;
-        echo 'Fax: ' . $contactInfo['fax'] . PHP_EOL;
-        echo 'Email: ' . $contactInfo['email'] . PHP_EOL;
-        echo 'Current Registrar: ' . $contactInfo['clID'] . PHP_EOL;
-        echo 'Original Registrar: ' . $contactInfo['crID'] . PHP_EOL;
-        echo 'Created On: ' . $contactInfo['crDate'] . PHP_EOL;
-        echo 'Updated By: ' . $contactInfo['upID'] . PHP_EOL;
-        echo 'Updated On: ' . $contactInfo['upDate'] . PHP_EOL;
-        echo 'Password: ' . $contactInfo['authInfo'] . PHP_EOL;
-        echo 'Status: ' . $contactInfo['status'][1] . PHP_EOL;
+
+    echo "ContactInfo Result: {$contactInfo['code']}: {$contactInfo['msg']}" . PHP_EOL;
+
+    $fields = [
+        'ID'                  => 'id',
+        'ROID'                => 'roid',
+        'Name'                => 'name',
+        'Org'                 => 'org',
+        'Street 1'            => 'street1',
+        'Street 2'            => 'street2',
+        'Street 3'            => 'street3',
+        'City'                => 'city',
+        'State'               => 'state',
+        'Postal'              => 'postal',
+        'Country'             => 'country',
+        'Voice'               => 'voice',
+        'Fax'                 => 'fax',
+        'Email'               => 'email',
+        'Current Registrar'   => 'clID',
+        'Original Registrar'  => 'crID',
+        'Created On'          => 'crDate',
+        'Updated By'          => 'upID',
+        'Updated On'          => 'upDate',
+        'Password'            => 'authInfo',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($contactInfo[$key]) && $contactInfo[$key] !== '') {
+            echo "{$label}: {$contactInfo[$key]}" . PHP_EOL;
+        }
+    }
+
+    if (!empty($contactInfo['status'])) {
+        foreach ((array) $contactInfo['status'] as $status) {
+            echo "Status: {$status}" . PHP_EOL;
+        }
     }
 
     $logout = $epp->logout();

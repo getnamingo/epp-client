@@ -8,14 +8,14 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
     $pollReq = $epp->pollReq();
+
     if ($pollReq['messages'] == 0) {
         echo 'No messages in poll queue' . PHP_EOL;
     } else {

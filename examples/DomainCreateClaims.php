@@ -11,26 +11,20 @@
 /**
  * To run this demo using a second test account:
  *
- * 1) Replace the include:
- *      require_once __DIR__ . '/Connection.php';
- *    with:
- *      require_once __DIR__ . '/Connection2.php';
- *
- * 2) Replace:
- *      $epp = connectEpp('generic');
- *    with:
- *      $epp = connectEpp2('generic');
+ * Replace the include:
+ *    require_once __DIR__ . '/Connection.php';
+ *  with:
+ *    require_once __DIR__ . '/Connection2.php';
  *
  * This allows testing with two separate credentials
  * without changing the code logic.
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
     $params = [
         'domainname' => 'test.example',

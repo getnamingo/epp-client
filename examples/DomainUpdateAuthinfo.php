@@ -8,28 +8,24 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
+    $domainUpdateAuthinfo = $epp->domainUpdateAuthinfo([
         'domainname' => 'test.example',
-        'authInfo' => 'P@ssword123!'
-    );
-    $domainUpdateAuthinfo = $epp->domainUpdateAuthinfo($params);
-    
-    if (array_key_exists('error', $domainUpdateAuthinfo))
-    {
+        'authInfo'   => 'P@ssword123!',
+    ]);
+
+    if (isset($domainUpdateAuthinfo['error'])) {
         echo 'DomainUpdateAuthinfo Error: ' . $domainUpdateAuthinfo['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainUpdateAuthinfo result: " . $domainUpdateAuthinfo['code'] . ": " . $domainUpdateAuthinfo['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainUpdateAuthinfo result: {$domainUpdateAuthinfo['code']}: {$domainUpdateAuthinfo['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

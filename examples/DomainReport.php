@@ -8,27 +8,23 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'domainname' => 'test.example'
-    );
-    $domainReport = $epp->domainReport($params);
-    
-    if (array_key_exists('error', $domainReport))
-    {
+    $domainReport = $epp->domainReport([
+        'domainname' => 'test.example',
+    ]);
+
+    if (isset($domainReport['error'])) {
         echo 'DomainReport Error: ' . $domainReport['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainReport result: " . $domainReport['code'] . ": " . $domainReport['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainReport result: {$domainReport['code']}: {$domainReport['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

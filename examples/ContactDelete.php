@@ -8,26 +8,22 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'contact' => 'tembo001'
-    );
-    $contactDelete = $epp->contactDelete($params);
-    
-    if (array_key_exists('error', $contactDelete))
-    {
+    $contactDelete = $epp->contactDelete([
+        'contact' => 'tembo001',
+    ]);
+
+    if (isset($contactDelete['error'])) {
         echo 'ContactDelete Error: ' . $contactDelete['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "ContactDelete result: " . $contactDelete['code'] . ": " . $contactDelete['msg'] . PHP_EOL;
-    }
+
+    echo "ContactDelete result: {$contactDelete['code']}: {$contactDelete['msg']}" . PHP_EOL;
 
     $logout = $epp->logout();
 

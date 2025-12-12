@@ -8,12 +8,11 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
     
     $startTime = time();
     $endTime = $startTime + 1800; // 30 minutes from start time

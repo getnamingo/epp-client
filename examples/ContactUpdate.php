@@ -8,39 +8,35 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
-    
-    $params = array(
-        'id' => 'tembo007',
-        'type' => 'int',
-        'firstname' => 'Svyatoslav',
-        'lastname' => 'Petrenko',
-        'companyname' => 'TOV TEMBO',
-        'address1' => 'vul. Stryiska 100',
-        'address2' => 'kv. 2',
-        'city' => 'Lviv',
-        'state' => 'Lviv',
-        'postcode' => '48000',
-        'country' => 'UA',
-        'fullphonenumber' => '+380.7654321',
-        'email' => 'test@tembo.lviv.ua',
-        'authInfoPw' => 'ABCLviv@345'
-    );
-    $contactUpdate = $epp->contactUpdate($params);
+    $epp = connect();
 
-    if (array_key_exists('error', $contactUpdate))
-    {
-        echo 'contactUpdate Error: ' . $contactUpdate['error'] . PHP_EOL;
+    $contactUpdate = $epp->contactUpdate([
+        'id'               => 'tembo007',
+        'type'             => 'int',
+        'firstname'        => 'Svyatoslav',
+        'lastname'         => 'Petrenko',
+        'companyname'      => 'TOV TEMBO',
+        'address1'         => 'vul. Stryiska 100',
+        'address2'         => 'kv. 2',
+        'city'             => 'Lviv',
+        'state'            => 'Lviv',
+        'postcode'         => '48000',
+        'country'          => 'UA',
+        'fullphonenumber'  => '+380.7654321',
+        'email'            => 'test@tembo.lviv.ua',
+        'authInfoPw'       => 'ABCLviv@345',
+    ]);
+
+    if (isset($contactUpdate['error'])) {
+        echo 'ContactUpdate Error: ' . $contactUpdate['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'contactUpdate Result: ' . $contactUpdate['code'] . ': ' . $contactUpdate['msg'] . PHP_EOL;
-    }
+
+    echo "ContactUpdate Result: {$contactUpdate['code']}: {$contactUpdate['msg']}" . PHP_EOL;
 
     $logout = $epp->logout();
 

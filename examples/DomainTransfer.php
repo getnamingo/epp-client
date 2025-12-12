@@ -8,47 +8,41 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
     
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-         'domainname' => 'test.example',
-         'years' => 1,
-         'authInfoPw' => 'Domainpw123@',
-         'op' => 'request'
-    );
-    $domainTransfer = $epp->domainTransfer($params);
-    
-    if (array_key_exists('error', $domainTransfer)) {
+    $domainTransfer = $epp->domainTransfer([
+        'domainname' => 'test.example',
+        'years'      => 1,
+        'authInfoPw' => 'Domainpw123@',
+        'op'         => 'request',
+    ]);
+
+    if (isset($domainTransfer['error'])) {
         echo 'DomainTransfer Error: ' . $domainTransfer['error'] . PHP_EOL;
-    } else {
-        if (array_key_exists('code', $domainTransfer) && array_key_exists('msg', $domainTransfer)) {
-            echo 'DomainTransfer Result: ' . $domainTransfer['code'] . ': ' . $domainTransfer['msg'] . PHP_EOL;
-        }
-        if (array_key_exists('name', $domainTransfer)) {
-            echo 'Name: ' . $domainTransfer['name'] . PHP_EOL;
-        }
-        if (array_key_exists('trStatus', $domainTransfer)) {
-            echo 'Transfer Status: ' . $domainTransfer['trStatus'] . PHP_EOL;
-        }
-        if (array_key_exists('reID', $domainTransfer)) {
-            echo 'Gaining Registrar: ' . $domainTransfer['reID'] . PHP_EOL;
-        }
-        if (array_key_exists('reDate', $domainTransfer)) {
-            echo 'Requested On: ' . $domainTransfer['reDate'] . PHP_EOL;
-        }
-        if (array_key_exists('acID', $domainTransfer)) {
-            echo 'Losing Registrar: ' . $domainTransfer['acID'] . PHP_EOL;
-        }
-        if (array_key_exists('acDate', $domainTransfer)) {
-            echo 'Transfer Confirmed On: ' . $domainTransfer['acDate'] . PHP_EOL;
-        }
-        if (array_key_exists('exDate', $domainTransfer)) {
-            echo 'New Expiration Date: ' . $domainTransfer['exDate'] . PHP_EOL;
+        return;
+    }
+
+    if (isset($domainTransfer['code'], $domainTransfer['msg'])) {
+        echo "DomainTransfer Result: {$domainTransfer['code']}: {$domainTransfer['msg']}" . PHP_EOL;
+    }
+
+    $fields = [
+        'Name'                    => 'name',
+        'Transfer Status'         => 'trStatus',
+        'Gaining Registrar'       => 'reID',
+        'Requested On'            => 'reDate',
+        'Losing Registrar'        => 'acID',
+        'Transfer Confirmed On'   => 'acDate',
+        'New Expiration Date'     => 'exDate',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($domainTransfer[$key]) && $domainTransfer[$key] !== '') {
+            echo "{$label}: {$domainTransfer[$key]}" . PHP_EOL;
         }
     }
 

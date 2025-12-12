@@ -8,54 +8,33 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'hostname' => 'ns1.test.example'
-    );
-    $hostCheck = $epp->hostCheck($params);
-    
-    if (array_key_exists('error', $hostCheck))
-    {
+    $hostCheck = $epp->hostCheck([
+        'hostname' => 'ns1.test.example',
+    ]);
+
+    if (isset($hostCheck['error'])) {
         echo 'HostCheck Error: ' . $hostCheck['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        if ($registry == 'fred') {
-        echo "HostCheck result: " . $hostCheck['code'] . ": " . $hostCheck['msg'] . PHP_EOL;
-        $x=1;
-        foreach ($hostCheck['hosts'] as $host)
-        {
-            if ($host['avail'])
-            {
-                echo "Host ".$x.": " . $host['id'] . " is available" . PHP_EOL;
-            }
-            else
-            {
-                echo "Host ".$x.": " . $host['id'] . " is not available because: " . $host['reason'] . PHP_EOL;
-            }
-            $x++;
-        } 
+
+    echo "HostCheck result: {$hostCheck['code']}: {$hostCheck['msg']}" . PHP_EOL;
+
+    foreach (($hostCheck['hosts'] ?? []) as $i => $host) {
+        $label = $host['name'] ?? $host['id'] ?? 'unknown';
+        $avail = filter_var($host['avail'] ?? false, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+        $avail = $avail ?? ((int)($host['avail'] ?? 0) === 1); // fallback
+
+        if ($avail) {
+            echo 'Host ' . ($i + 1) . ": {$label} is available" . PHP_EOL;
         } else {
-        echo "HostCheck result: " . $hostCheck['code'] . ": " . $hostCheck['msg'] . PHP_EOL;
-        $x=1;
-        foreach ($hostCheck['hosts'] as $host)
-        {
-            if ($host['avail'] == 1)
-            {
-                echo "Host ".$x.": " . $host['name'] . " is available" . PHP_EOL;
-            }
-            else
-            {
-                echo "Host ".$x.": " . $host['name'] . " is not available because: " . $host['reason'] . PHP_EOL;
-            }
-            $x++;
-        } 
+            $reason = $host['reason'] ?? 'no reason given';
+            echo 'Host ' . ($i + 1) . ": {$label} is not available because: {$reason}" . PHP_EOL;
         }
     }
 

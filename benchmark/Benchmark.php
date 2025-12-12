@@ -8,15 +8,14 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 require_once __DIR__ . '/Helpers.php';
 
 try {
     // Start timing
     $startTime = microtime(true);
-    
-    $epp = connectEpp('generic');
+
+    $epp = connect();
 
     // Create 200 batches of 5 domain checks each
     for ($i = 0; $i < 200; $i++) {

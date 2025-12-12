@@ -8,27 +8,23 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'domainname' => 'test.example'
-    );
-    $domainRestore = $epp->domainRestore($params);
-    
-    if (array_key_exists('error', $domainRestore))
-    {
+    $domainRestore = $epp->domainRestore([
+        'domainname' => 'test.example',
+    ]);
+
+    if (isset($domainRestore['error'])) {
         echo 'DomainRestore Error: ' . $domainRestore['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainRestore result: " . $domainRestore['code'] . ": " . $domainRestore['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainRestore result: {$domainRestore['code']}: {$domainRestore['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

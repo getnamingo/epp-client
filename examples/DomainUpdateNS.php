@@ -8,45 +8,52 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
+    $domainUpdateNS = $epp->domainUpdateNS([
         'domainname' => 'test.example',
-        // Comment these lines and uncomment the block below if the TLD requires <domain:hostAttr> with IP addresses:
+
+        /**
+         * Name server update mode:
+         *
+         * Option A (most TLDs):
+         *   Use host objects only (<domain:hostObj>)
+         */
         'ns1' => 'ns1.example.com',
         'ns2' => 'ns2.example.com',
-        /* Uncomment the following block for TLDs requiring <domain:hostAttr> with IP addresses:
-        'nss' => array(
-            array(
-                'hostName' => 'ns1.example.com',
-                'ipv4' => '192.168.1.1',
-                'ipv6' => '2001:db8::1'
-            ),
-            array(
-                'hostName' => 'ns2.example.com',
-                'ipv4' => '192.168.1.2'
-            ),
-            array(
-                'hostName' => 'ns3.example.com'
-            )
-        ), */
-    );
-    $domainUpdateNS = $epp->domainUpdateNS($params);
-    
-    if (array_key_exists('error', $domainUpdateNS))
-    {
+
+        /**
+         * Option B (TLDs requiring <domain:hostAttr> with glue):
+         *   Uncomment and use this block instead of ns1/ns2 above.
+         *
+         * 'nss' => [
+         *     [
+         *         'hostName' => 'ns1.example.com',
+         *         'ipv4'     => '192.168.1.1',
+         *         'ipv6'     => '2001:db8::1',
+         *     ],
+         *     [
+         *         'hostName' => 'ns2.example.com',
+         *         'ipv4'     => '192.168.1.2',
+         *     ],
+         *     [
+         *         'hostName' => 'ns3.example.com',
+         *     ],
+         * ],
+         */
+    ]);
+
+    if (isset($domainUpdateNS['error'])) {
         echo 'DomainUpdateNS Error: ' . $domainUpdateNS['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainUpdateNS result: " . $domainUpdateNS['code'] . ": " . $domainUpdateNS['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainUpdateNS result: {$domainUpdateNS['code']}: {$domainUpdateNS['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

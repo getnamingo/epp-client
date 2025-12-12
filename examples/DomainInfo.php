@@ -8,71 +8,120 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
+    $domainInfo = $epp->domainInfo([
         'domainname' => 'test.example',
-        'authInfoPw' => 'Domainpw123@'
-    );
-    $domainInfo = $epp->domainInfo($params);
-    
-    if (array_key_exists('error', $domainInfo))
-    {
+        'authInfoPw' => 'Domainpw123@',
+    ]);
+
+    if (isset($domainInfo['error'])) {
         echo 'DomainInfo Error: ' . $domainInfo['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'DomainInfo Result: ' . $domainInfo['code'] . ': ' . $domainInfo['msg'] . PHP_EOL;
-        echo 'Name: ' . $domainInfo['name'] . PHP_EOL;
-        echo 'ROID: ' . $domainInfo['roid'] . PHP_EOL;
-        $status = $domainInfo['status'] ?? 'No status available';
+
+    echo "DomainInfo Result: {$domainInfo['code']}: {$domainInfo['msg']}" . PHP_EOL;
+
+    $fields = [
+        'Name'              => 'name',
+        'ROID'              => 'roid',
+        'Registrant'        => 'registrant',
+        'Current Registrar' => 'clID',
+        'Original Registrar'=> 'crID',
+        'Created On'        => 'crDate',
+        'Updated By'        => 'upID',
+        'Updated On'        => 'upDate',
+        'Expires On'        => 'exDate',
+        'Transferred On'    => 'trDate',
+        'Password'          => 'authInfo',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($domainInfo[$key]) && $domainInfo[$key] !== '') {
+            echo "{$label}: {$domainInfo[$key]}" . PHP_EOL;
+        }
+    }
+
+    /**
+     * Normalize status:
+     * - list: ['ok', 'clientTransferProhibited']
+     * - map: ['ok' => '...', 'clientTransferProhibited' => '...']
+     * - string: 'ok'
+     */
+    if (isset($domainInfo['status']) && $domainInfo['status'] !== '') {
+        echo 'Status: ';
+        $status = $domainInfo['status'];
+
         if (is_array($status)) {
-            echo 'Status: ' . implode(', ', $status) . PHP_EOL;
+            $parts = [];
+            foreach ($status as $k => $v) {
+                $parts[] = is_int($k) ? (string)$v : "{$k}: {$v}";
+            }
+            echo implode(', ', $parts) . PHP_EOL;
         } else {
-            echo 'Status: ' . $status . PHP_EOL;
+            echo $status . PHP_EOL;
         }
-        echo 'Registrant: ' . $domainInfo['registrant'] . PHP_EOL;
+    }
 
-        $contact_types = array("admin", "billing", "tech");
-        foreach ($contact_types as $type) {
-            $contact = array_values(array_filter($domainInfo['contact'], function($c) use ($type) {
-                return $c["type"] == $type;
-            }));
-            if (count($contact) > 0) {
-                $type = ucfirst($type);
-                echo $type . ": " . $contact[0]["id"] . "\n";
-            }
-        }
-        if (isset($domainInfo['ns']) && is_array($domainInfo['ns'])) {
-            asort($domainInfo['ns']);
-            foreach ($domainInfo['ns'] as $server) {
-                echo "Name Server: $server\n";
-            }
-        } else {
-            echo "No Name Servers available.\n";
-        }
+    /**
+     * Contacts: tolerate shapes like:
+     * - [['type' => 'admin', 'id' => 'X'], ...]
+     * - ['admin' => 'X', 'tech' => 'Y'] (less common)
+     */
+    if (!empty($domainInfo['contact']) && is_array($domainInfo['contact'])) {
+        $wanted = ['admin', 'billing', 'tech'];
 
-        if (isset($domainInfo['host']) && is_array($domainInfo['host'])) {
-            asort($domainInfo['host']);
-            foreach ($domainInfo['host'] as $host) {
-                echo "Host: $host\n";
+        foreach ($wanted as $type) {
+            $id = null;
+
+            // keyed format: ['admin' => 'X']
+            if (isset($domainInfo['contact'][$type]) && is_scalar($domainInfo['contact'][$type])) {
+                $id = (string) $domainInfo['contact'][$type];
+            } else {
+                // list format
+                foreach ($domainInfo['contact'] as $c) {
+                    if (!is_array($c)) {
+                        continue;
+                    }
+                    if (($c['type'] ?? null) === $type && isset($c['id']) && $c['id'] !== '') {
+                        $id = (string) $c['id'];
+                        break;
+                    }
+                }
             }
-        } else {
-            echo "No Hosts available.\n";
+
+            if ($id !== null) {
+                echo ucfirst($type) . ": {$id}" . PHP_EOL;
+            }
         }
-        echo 'Current Registrar: ' . $domainInfo['clID'] . PHP_EOL;
-        echo 'Original Registrar: ' . $domainInfo['crID'] . PHP_EOL;
-        echo 'Created On: ' . $domainInfo['crDate'] . PHP_EOL;
-        echo 'Updated By: ' . $domainInfo['upID'] . PHP_EOL;
-        echo 'Updated On: ' . $domainInfo['upDate'] . PHP_EOL;
-        echo 'Expires On: ' . $domainInfo['exDate'] . PHP_EOL;
-        echo 'Transferred On: ' . $domainInfo['trDate'] . PHP_EOL;
-        echo 'Password: ' . $domainInfo['authInfo'] . PHP_EOL;
+    }
+
+    /**
+     * Name servers
+     */
+    if (!empty($domainInfo['ns']) && is_array($domainInfo['ns'])) {
+        $ns = array_values(array_filter($domainInfo['ns'], 'is_scalar'));
+        sort($ns, SORT_NATURAL | SORT_FLAG_CASE);
+
+        foreach ($ns as $server) {
+            echo "Name Server: {$server}" . PHP_EOL;
+        }
+    }
+
+    /**
+     * Hosts
+     */
+    if (!empty($domainInfo['host']) && is_array($domainInfo['host'])) {
+        $hosts = array_values(array_filter($domainInfo['host'], 'is_scalar'));
+        sort($hosts, SORT_NATURAL | SORT_FLAG_CASE);
+
+        foreach ($hosts as $host) {
+            echo "Host: {$host}" . PHP_EOL;
+        }
     }
 
     $logout = $epp->logout();

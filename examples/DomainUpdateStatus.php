@@ -8,29 +8,25 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
+    $domainUpdateStatus = $epp->domainUpdateStatus([
         'domainname' => 'test.example',
-        'command' => 'add',
-        'status' => 'clientTransferProhibited'
-    );
-    $domainUpdateStatus = $epp->domainUpdateStatus($params);
-    
-    if (array_key_exists('error', $domainUpdateStatus))
-    {
+        'command'    => 'add',
+        'status'     => 'clientTransferProhibited',
+    ]);
+
+    if (isset($domainUpdateStatus['error'])) {
         echo 'DomainUpdateStatus Error: ' . $domainUpdateStatus['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainUpdateStatus result: " . $domainUpdateStatus['code'] . ": " . $domainUpdateStatus['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainUpdateStatus result: {$domainUpdateStatus['code']}: {$domainUpdateStatus['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

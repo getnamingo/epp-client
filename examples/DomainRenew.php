@@ -8,30 +8,35 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
+    $domainRenew = $epp->domainRenew([
         'domainname' => 'test.example',
-        'regperiod' => 1
-    );
-    $domainRenew = $epp->domainRenew($params);
-    
-    if (array_key_exists('error', $domainRenew))
-    {
+        'regperiod'  => 1,
+    ]);
+
+    if (isset($domainRenew['error'])) {
         echo 'DomainRenew Error: ' . $domainRenew['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainRenew result: " . $domainRenew['code'] . ": " . $domainRenew['msg'] . PHP_EOL;
-        echo 'Domain Name: ' . $domainRenew['name'] . PHP_EOL;
-        echo 'New Expiration Date: ' . $domainRenew['exDate'] . PHP_EOL;
+
+    echo "DomainRenew result: {$domainRenew['code']}: {$domainRenew['msg']}" . PHP_EOL;
+
+    $fields = [
+        'Domain Name'          => 'name',
+        'New Expiration Date'  => 'exDate',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($domainRenew[$key]) && $domainRenew[$key] !== '') {
+            echo "{$label}: {$domainRenew[$key]}" . PHP_EOL;
+        }
     }
-    
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

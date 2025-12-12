@@ -8,42 +8,42 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
-    
-    $params = array(
-        'id' => 'tembo007',
-        'type' => 'int',
-        'firstname' => 'Svyatoslav',
-        'lastname' => 'Petrenko',
-        'companyname' => 'TOV TEMBO',
-        'address1' => 'vul. Stryiska 1',
-        'address2' => 'kv. 1',
-        'city' => 'Lviv',
-        'state' => 'Lviv',
-        'postcode' => '48000',
-        'country' => 'UA',
-        'fullphonenumber' => '+380.1234567',
-        'email' => 'test@tembo.ua',
-        'authInfoPw' => 'ABCLviv@345',
-        //'euType' => 'tech',
-        //'nin_type' => 'person',
-        //'nin' => '1234567789',
-    );
-    $contactCreate = $epp->contactCreate($params);
+    $epp = connect();
 
-    if (array_key_exists('error', $contactCreate))
-    {
+    $contactCreate = $epp->contactCreate([
+        'id'               => 'tembo007',
+        'type'             => 'int',
+        'firstname'        => 'Svyatoslav',
+        'lastname'         => 'Petrenko',
+        'companyname'      => 'TOV TEMBO',
+        'address1'         => 'vul. Stryiska 1',
+        'address2'         => 'kv. 1',
+        'city'             => 'Lviv',
+        'state'            => 'Lviv',
+        'postcode'         => '48000',
+        'country'          => 'UA',
+        'fullphonenumber'  => '+380.1234567',
+        'email'            => 'test@tembo.ua',
+        'authInfoPw'       => 'ABCLviv@345',
+        // 'euType'   => 'tech',
+        // 'nin_type' => 'person',
+        // 'nin'      => '1234567789',
+    ]);
+
+    if (isset($contactCreate['error'])) {
         echo 'ContactCreate Error: ' . $contactCreate['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'ContactCreate Result: ' . $contactCreate['code'] . ': ' . $contactCreate['msg'] . PHP_EOL . 'New Contact ID: ' . $contactCreate['id'] . PHP_EOL;
-    }
+
+    echo 'ContactCreate Result: '
+        . $contactCreate['code'] . ': '
+        . $contactCreate['msg'] . PHP_EOL
+        . 'New Contact ID: '
+        . ($contactCreate['id'] ?? 'unknown') . PHP_EOL;
 
     $logout = $epp->logout();
 

@@ -8,12 +8,12 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
+
     $clTRID = str_replace('.', '', round(microtime(1), 3));
 
     $params = array(

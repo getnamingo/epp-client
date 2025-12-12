@@ -8,27 +8,23 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'hostname' => 'ns1.test.example'
-    );
-    $hostDelete = $epp->hostDelete($params);
-    
-    if (array_key_exists('error', $hostDelete))
-    {
+    $hostDelete = $epp->hostDelete([
+        'hostname' => 'ns1.test.example',
+    ]);
+
+    if (isset($hostDelete['error'])) {
         echo 'HostDelete Error: ' . $hostDelete['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "HostDelete result: " . $hostDelete['code'] . ": " . $hostDelete['msg'] . PHP_EOL;
-    }
-    
+
+    echo "HostDelete result: {$hostDelete['code']}: {$hostDelete['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

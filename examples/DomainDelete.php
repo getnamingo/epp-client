@@ -8,27 +8,23 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'domainname' => 'test.example'
-    );
-    $domainDelete = $epp->domainDelete($params);
-    
-    if (array_key_exists('error', $domainDelete))
-    {
+    $domainDelete = $epp->domainDelete([
+        'domainname' => 'test.example',
+    ]);
+
+    if (isset($domainDelete['error'])) {
         echo 'DomainDelete Error: ' . $domainDelete['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainDelete result: " . $domainDelete['code'] . ": " . $domainDelete['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainDelete result: {$domainDelete['code']}: {$domainDelete['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

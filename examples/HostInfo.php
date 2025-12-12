@@ -8,52 +8,61 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'hostname' => 'ns1.test.example'
-    );
-    $hostInfo = $epp->hostInfo($params);
-    
-    if (array_key_exists('error', $hostInfo))
-    {
+    $hostInfo = $epp->hostInfo([
+        'hostname' => 'ns1.test.example',
+    ]);
+
+    if (isset($hostInfo['error'])) {
         echo 'HostInfo Error: ' . $hostInfo['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        if ($registry == 'fred') {
-        echo 'HostInfo Result: ' . $hostInfo['code'] . ': ' . $hostInfo['msg'] . PHP_EOL;
-        echo 'Name: ' . $hostInfo['name'] . PHP_EOL;
-        echo 'Status ';
-        foreach ($hostInfo['status'] as $key => $value) {
-            echo $key . ': ' . $value . ', ';
+
+    echo "HostInfo Result: {$hostInfo['code']}: {$hostInfo['msg']}" . PHP_EOL;
+    echo 'Name: ' . ($hostInfo['name'] ?? 'unknown') . PHP_EOL;
+
+    /**
+     * Normalize status:
+     * - sometimes it's a list: ['ok', 'linked']
+     * - sometimes it's a map: ['ok' => '...desc...', 'linked' => '...desc...']
+     */
+    if (!empty($hostInfo['status'])) {
+        echo 'Status: ';
+        foreach ((array) $hostInfo['status'] as $k => $v) {
+            echo is_int($k) ? "{$v}, " : "{$k}: {$v}, ";
         }
         echo PHP_EOL;
-        echo 'Addr ';
-        foreach ($hostInfo['addr'] as $key => $value) {
-            echo $key . ': ' . $value . ', ';
+    }
+
+    /**
+     * Normalize addr:
+     * - sometimes it's a list: ['8.8.8.8', '1.1.1.1']
+     * - sometimes it's a map: ['v4' => '8.8.8.8', 'v6' => '2001:db8::1']
+     */
+    if (!empty($hostInfo['addr'])) {
+        echo 'Addr: ';
+        foreach ((array) $hostInfo['addr'] as $k => $v) {
+            echo is_int($k) ? "{$v}, " : "{$k}: {$v}, ";
         }
         echo PHP_EOL;
-        echo 'Current Registrar: ' . $hostInfo['clID'] . PHP_EOL;
-        echo 'Original Registrar: ' . $hostInfo['crID'] . PHP_EOL;
-        echo 'Created On: ' . $hostInfo['crDate'] . PHP_EOL;
-        echo 'Updated By: ' . $hostInfo['upID'] . PHP_EOL;
-        echo 'Updated On: ' . $hostInfo['upDate'] . PHP_EOL;
-        } else {
-        echo 'HostInfo Result: ' . $hostInfo['code'] . ': ' . $hostInfo['msg'] . PHP_EOL;
-        echo 'Name: ' . $hostInfo['name'] . PHP_EOL;
-        echo 'Status: ' . $hostInfo['status'][0] . PHP_EOL;
-        echo 'Addr: ' . $hostInfo['addr'][0] . PHP_EOL;
-        echo 'Current Registrar: ' . $hostInfo['clID'] . PHP_EOL;
-        echo 'Original Registrar: ' . $hostInfo['crID'] . PHP_EOL;
-        echo 'Created On: ' . $hostInfo['crDate'] . PHP_EOL;
-        echo 'Updated By: ' . $hostInfo['upID'] . PHP_EOL;
-        echo 'Updated On: ' . $hostInfo['upDate'] . PHP_EOL;
+    }
+
+    $fields = [
+        'Current Registrar' => 'clID',
+        'Original Registrar' => 'crID',
+        'Created On' => 'crDate',
+        'Updated By' => 'upID',
+        'Updated On' => 'upDate',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($hostInfo[$key]) && $hostInfo[$key] !== '') {
+            echo "{$label}: {$hostInfo[$key]}" . PHP_EOL;
         }
     }
 

@@ -8,30 +8,26 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'domainname' => 'test.example',
-        'contacttype' => 'admin',
+    $domainUpdateContact = $epp->domainUpdateContact([
+        'domainname'     => 'test.example',
+        'contacttype'   => 'admin',
         'old_contactid' => 'ABC123',
-        'new_contactid' => 'ABC456'
-    );
-    $domainUpdateContact = $epp->domainUpdateContact($params);
-    
-    if (array_key_exists('error', $domainUpdateContact))
-    {
+        'new_contactid' => 'ABC456',
+    ]);
+
+    if (isset($domainUpdateContact['error'])) {
         echo 'DomainUpdateContact Error: ' . $domainUpdateContact['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainUpdateContact result: " . $domainUpdateContact['code'] . ": " . $domainUpdateContact['msg'] . PHP_EOL;
-    }
-    
+
+    echo "DomainUpdateContact result: {$domainUpdateContact['code']}: {$domainUpdateContact['msg']}" . PHP_EOL;
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

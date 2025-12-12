@@ -8,45 +8,36 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'contact' => array('tembo007', 'tembo009')
-    );
-    $contactCheck = $epp->contactCheck($params);
-    
-    if (array_key_exists('error', $contactCheck))
-    {
+    $contactCheck = $epp->contactCheck([
+        'contact' => ['tembo007', 'tembo009'],
+    ]);
+
+    if (isset($contactCheck['error'])) {
         echo 'ContactCheck Error: ' . $contactCheck['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "ContactCheck result: " . $contactCheck['code'] . ": " . $contactCheck['msg'] . PHP_EOL;
-        $x=1;
-        foreach ($contactCheck['contacts'] as $contact)
-        {
-            if ($contact['avail'])
-            {
-                echo "Contact ".$x.": ID " . $contact['id'] . " is available" . PHP_EOL;
-            }
-            else
-            {
-                if (!empty($contact['reason']))
-                {
-                    echo "Contact " . $x . ": ID " . $contact['id'] . " is not available because: " . $contact['reason'] . PHP_EOL;
-                }
-                else
-                {
-                    echo "Contact " . $x . ": ID " . $contact['id'] . " is not available" . PHP_EOL;
-                }
-            }
-            $x++;
+
+    echo "ContactCheck result: {$contactCheck['code']}: {$contactCheck['msg']}" . PHP_EOL;
+
+    foreach (($contactCheck['contacts'] ?? []) as $i => $contact) {
+        $id     = $contact['id'] ?? 'unknown';
+        $avail  = filter_var($contact['avail'] ?? false, FILTER_VALIDATE_BOOL);
+        $reason = $contact['reason'] ?? null;
+
+        if ($avail) {
+            echo 'Contact ' . ($i + 1) . ": ID {$id} is available" . PHP_EOL;
+            continue;
         }
+
+        echo 'Contact ' . ($i + 1) . ": ID {$id} is not available";
+        echo $reason ? " because: {$reason}" : '';
+        echo PHP_EOL;
     }
 
     $logout = $epp->logout();

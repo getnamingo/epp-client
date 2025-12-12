@@ -8,29 +8,34 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
+    $epp = connect();
 
-    $params = array(
-        'domainname' => 'test.example'
-    );
-    $domainCheckClaims = $epp->domainCheckClaims($params);
+    $domainCheckClaims = $epp->domainCheckClaims([
+        'domainname' => 'test.example',
+    ]);
 
-    if (array_key_exists('error', $domainCheckClaims))
-    {
+    if (isset($domainCheckClaims['error'])) {
         echo 'DomainCheckClaims Error: ' . $domainCheckClaims['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo "DomainCheckClaims result: " . $domainCheckClaims['code'] . ": " . $domainCheckClaims['msg'] . PHP_EOL;
-        echo "Domain Name: " . $domainCheckClaims['domain'] . PHP_EOL;
-        echo "Domain Status: " . $domainCheckClaims['status'] . PHP_EOL;
-        echo "Domain Phase: " . $domainCheckClaims['phase'] . PHP_EOL;
-        echo "Domain Claim Key: " . $domainCheckClaims['claimKey'] . PHP_EOL;
+
+    echo "DomainCheckClaims result: {$domainCheckClaims['code']}: {$domainCheckClaims['msg']}" . PHP_EOL;
+
+    $fields = [
+        'Domain Name'      => 'domain',
+        'Domain Status'    => 'status',
+        'Domain Phase'     => 'phase',
+        'Domain Claim Key' => 'claimKey',
+    ];
+
+    foreach ($fields as $label => $key) {
+        if (isset($domainCheckClaims[$key]) && $domainCheckClaims[$key] !== '') {
+            echo "{$label}: {$domainCheckClaims[$key]}" . PHP_EOL;
+        }
     }
 
     $logout = $epp->logout();

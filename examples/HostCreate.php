@@ -8,27 +8,27 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
-    
-    $params = array(
-        'hostname' => 'ns1.test.example',
-        'ipaddress' => '8.8.8.8'
-    );
-    $hostCreate = $epp->hostCreate($params);
+    $epp = connect();
 
-    if (array_key_exists('error', $hostCreate))
-    {
+    $hostCreate = $epp->hostCreate([
+        'hostname'  => 'ns1.test.example',
+        'ipaddress' => '8.8.8.8',
+    ]);
+
+    if (isset($hostCreate['error'])) {
         echo 'HostCreate Error: ' . $hostCreate['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'HostCreate Result: ' . $hostCreate['code'] . ': ' . $hostCreate['msg'] . PHP_EOL . 'New Host: ' . $hostCreate['name'] . PHP_EOL;
-    }
+
+    echo 'HostCreate Result: '
+        . $hostCreate['code'] . ': '
+        . $hostCreate['msg'] . PHP_EOL
+        . 'New Host: '
+        . ($hostCreate['name'] ?? 'unknown') . PHP_EOL;
 
     $logout = $epp->logout();
 

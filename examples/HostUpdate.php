@@ -8,28 +8,24 @@
  * @license MIT
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Connection.php';
 
 try
 {
-    $epp = connectEpp('generic');
-    
-    $params = array(
-        'hostname' => 'ns1.test.example',
-        'currentipaddress' => '4.4.4.4',
-        'newipaddress' => '8.8.8.8'
-    );
-    $hostUpdate = $epp->hostUpdate($params);
+    $epp = connect();
 
-    if (array_key_exists('error', $hostUpdate))
-    {
+    $hostUpdate = $epp->hostUpdate([
+        'hostname'          => 'ns1.test.example',
+        'currentipaddress'  => '4.4.4.4',
+        'newipaddress'      => '8.8.8.8',
+    ]);
+
+    if (isset($hostUpdate['error'])) {
         echo 'HostUpdate Error: ' . $hostUpdate['error'] . PHP_EOL;
+        return;
     }
-    else
-    {
-        echo 'HostUpdate Result: ' . $hostUpdate['code'] . ': ' . $hostUpdate['msg'] . PHP_EOL;
-    }
+
+    echo "HostUpdate Result: {$hostUpdate['code']}: {$hostUpdate['msg']}" . PHP_EOL;
 
     $logout = $epp->logout();
 
