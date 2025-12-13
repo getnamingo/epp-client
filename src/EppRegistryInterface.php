@@ -32,6 +32,7 @@ interface EppRegistryInterface
     public function contactCreate(array $params);
     public function contactUpdate(array $params);
     public function contactDelete(array $params);
+    public function contactTransfer(array $params);
 
     public function domainCheck(array $params);
     public function domainCheckClaims(array $params);

@@ -1134,6 +1134,139 @@ abstract class Epp implements EppRegistryInterface
     }
 
     /**
+     * contactTransfer
+     */
+    public function contactTransfer($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ id }}/';
+            $to[] = htmlspecialchars($params['contactid']);
+            switch (htmlspecialchars($params['op'])) {
+                case 'request':
+                    $from[] = '/{{ authInfoPw }}/';
+                    $to[] = htmlspecialchars($params['authInfoPw']);
+                    $xmltype = 'req';
+                    break;
+                case 'query':
+                    $from[] = '/{{ type }}/';
+                    $to[] = 'query';
+                    $xmltype = 'oth';
+                    break;
+                case 'cancel':
+                    $from[] = '/{{ type }}/';
+                    $to[] = 'cancel';
+                    $xmltype = 'oth';
+                    break;
+                case 'reject':
+                    $from[] = '/{{ type }}/';
+                    $to[] = 'reject';
+                    $xmltype = 'oth';
+                    break;
+                case 'approve':
+                    $xmltype = 'apr';
+                    break;
+                default:
+                    throw new EppException('Invalid value for transfer:op specified.');
+                    break;
+            }
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-transfer-' . $clTRID);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            if ($xmltype === 'req') {
+                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+              <command>
+                <transfer op="request">
+                  <contact:transfer
+                   xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+                    <contact:id>{{ id }}</contact:id>
+                    <contact:authInfo>
+                      <contact:pw>{{ authInfoPw }}</contact:pw>
+                    </contact:authInfo>
+                  </contact:transfer>
+                </transfer>
+                <clTRID>{{ clTRID }}</clTRID>
+              </command>
+            </epp>');
+            } else if ($xmltype === 'apr') {
+                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+              <command>
+                <transfer op="approve">
+                  <contact:transfer
+                   xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+                    <contact:id>{{ id }}</contact:id>
+                  </contact:transfer>
+                </transfer>
+                <clTRID>{{ clTRID }}</clTRID>
+              </command>
+            </epp>');
+            } else if ($xmltype === 'oth') {
+                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+              <command>
+                <transfer op="{{ type }}">
+                  <contact:transfer
+                   xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+                    <contact:id>{{ id }}</contact:id>
+                  </contact:transfer>
+                </transfer>
+                <clTRID>{{ clTRID }}</clTRID>
+              </command>
+            </epp>');
+            }
+            
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+            $r = $r->response->resData->children('urn:ietf:params:xml:ns:contact-1.0')->trnData;
+            $id = (string)($r->id ?? 'N/A');
+            $trStatus = (string)($r->trStatus ?? 'N/A');
+            $reID = (string)($r->reID ?? 'N/A');
+            $reDate = (string)($r->reDate ?? 'N/A');
+            $acID = (string)($r->acID ?? 'N/A');
+            $acDate = (string)($r->acDate ?? 'N/A');
+            $exDate = (string)($r->exDate ?? 'N/A');
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg,
+                'id' => $id,
+                'trStatus' => $trStatus,
+                'reID' => $reID,
+                'reDate' => $reDate,
+                'acID' => $acID,
+                'acDate' => $acDate,
+                'exDate' => $exDate
+            );
+
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
      * domainCheck
      */
     public function domainCheck($params = array())

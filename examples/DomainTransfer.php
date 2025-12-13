@@ -15,10 +15,10 @@ try
     $epp = connect();
 
     $domainTransfer = $epp->domainTransfer([
-        'domainname' => 'test.example',
-        'years'      => 1,
-        'authInfoPw' => 'Domainpw123@',
-        'op'         => 'request',
+        'domainname' => 'test.example',      // Fully-qualified domain name to be transferred
+        'years'      => 1,                   // Number of years to extend the domain upon successful transfer (usually 1)
+        'authInfoPw' => 'Domainpw123@',      // Domain authorization (EPP transfer) password
+        'op'         => 'request',           // Transfer operation: request | query | cancel | reject | approve
     ]);
 
     if (isset($domainTransfer['error'])) {
@@ -51,6 +51,8 @@ try
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;
 } catch(\Pinga\Tembo\Exception\EppException $e) {
     echo "Error : ".$e->getMessage() . PHP_EOL;
+    exit(1);
 } catch(Throwable $e) {
     echo "Error : ".$e->getMessage() . PHP_EOL;
+    exit(1);
 }

@@ -37,11 +37,11 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | updateDNSSEC | ✅ | N/A | N/A | |
 | renew | ✅ | N/A | N/A | |
 | delete | ✅ | ✅ | ✅ |  |
-| transferRequest | ✅ | ❌ | ❌ | |
-| transferQuery | ✅ | ❌ | ❌ | |
-| transferApprove | ✅ | ❌ | ❌ | |
-| transferReject | ✅ | ❌ | ❌ | |
-| transferCancel | ✅ | ❌ | ❌ | |
+| transferRequest | ✅ | ✅ | N/A | |
+| transferQuery | ✅ | ✅ | N/A | |
+| transferApprove | ✅ | ✅ | N/A | |
+| transferReject | ✅ | ✅ | N/A | |
+| transferCancel | ✅ | ✅ | N/A | |
 | rgp:restore | ✅ | N/A | N/A | |
 | rgp:report | ✅ | N/A | N/A | |
 
