@@ -17,6 +17,7 @@ function connectEpp(?string $registry = null) {
     $registry ??= 'generic';
 
     $epp = EppRegistryFactory::create($registry);
+    $epp->setLogPath(__DIR__ . '/../log');
 
     $info = [
         // EPP endpoint

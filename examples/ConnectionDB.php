@@ -40,7 +40,8 @@ function connectEpp(?string $registry = null) {
     }
 
     $epp = EppRegistryFactory::create($registry);
-    
+    $epp->setLogPath(__DIR__ . '/../log');
+
     $info = [
         // EPP endpoint
         // For EPP-over-HTTPS use:

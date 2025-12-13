@@ -13,7 +13,8 @@ namespace Pinga\Tembo;
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
 use Monolog\Logger;
-use Monolog\Handler\SyslogHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 
 abstract class Epp implements EppRegistryInterface
@@ -21,6 +22,7 @@ abstract class Epp implements EppRegistryInterface
     protected $resource;
     protected $isLoggedIn;
     protected $prefix;
+    protected string $logPath = __DIR__ . '/../log';
 
     /**
      * Default login extensions.
@@ -39,28 +41,10 @@ abstract class Epp implements EppRegistryInterface
 
         // Create the loggers
         $this->responseLogger = new Logger('Response');
-        $this->requestLogger = new Logger('Request');
-        $this->commonLogger = new Logger('Tembo');
+        $this->requestLogger  = new Logger('Request');
+        $this->commonLogger   = new Logger('Tembo');
 
-        // Optional: format like file logs
-        $lineFormat = "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
-        $dateFormat = "Y-m-d H:i:s";
-        $formatter = new LineFormatter($lineFormat, $dateFormat);
-
-        // Create syslog handlers
-        $responseHandler = new SyslogHandler('tembo-response', LOG_USER, Logger::DEBUG);
-        $requestHandler  = new SyslogHandler('tembo-request', LOG_USER, Logger::DEBUG);
-        $commonHandler   = new SyslogHandler('tembo-common', LOG_USER, Logger::DEBUG);
-
-        // Apply formatters
-        $responseHandler->setFormatter($formatter);
-        $requestHandler->setFormatter($formatter);
-        $commonHandler->setFormatter($formatter);
-
-        // Attach handlers
-        $this->responseLogger->pushHandler($responseHandler);
-        $this->requestLogger->pushHandler($requestHandler);
-        $this->commonLogger->pushHandler($commonHandler);
+        $this->initLoggers();
     }
 
     /**
@@ -294,6 +278,42 @@ abstract class Epp implements EppRegistryInterface
     public function setLoginExtensions(array $extURIs): void
     {
         $this->loginExtensions = $extURIs;
+    }
+
+    public function setLogPath(string $path): void
+    {
+        $this->logPath = rtrim($path, '/');
+        $this->initLoggers();
+    }
+
+    protected function initLoggers(): void
+    {
+        $lineFormat = "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
+        $dateFormat = "Y-m-d H:i:s";
+        $formatter  = new LineFormatter($lineFormat, $dateFormat);
+
+        $this->logPath = rtrim($this->logPath, '/') . '/' . (new \ReflectionClass($this))->getShortName();
+
+        if (!is_dir($this->logPath)) {
+            mkdir($this->logPath, 0750, true);
+        }
+
+        // Reset handlers if re-initializing
+        $this->responseLogger->setHandlers([]);
+        $this->requestLogger->setHandlers([]);
+        $this->commonLogger->setHandlers([]);
+
+        $responseHandler = new RotatingFileHandler($this->logPath . '/response.log', 14, Logger::DEBUG);
+        $requestHandler  = new RotatingFileHandler($this->logPath . '/request.log', 14, Logger::DEBUG);
+        $commonHandler   = new RotatingFileHandler($this->logPath . '/common.log', 14, Logger::DEBUG);
+
+        $responseHandler->setFormatter($formatter);
+        $requestHandler->setFormatter($formatter);
+        $commonHandler->setFormatter($formatter);
+
+        $this->responseLogger->pushHandler($responseHandler);
+        $this->requestLogger->pushHandler($requestHandler);
+        $this->commonLogger->pushHandler($commonHandler);
     }
 
     /**
@@ -3105,17 +3125,30 @@ abstract class Epp implements EppRegistryInterface
 
         return $return;
     }
-    
+
+    protected function maskSensitiveXml(string $xml): string
+    {
+        $xml = preg_replace_callback(
+            '~(<(?:[A-Za-z0-9_-]+:)?(?:pw|newPW|newPw)>\s*)(.*?)(\s*</(?:[A-Za-z0-9_-]+:)?(?:pw|newPW|newPw)>)~si',
+            static fn($m) => $m[1] . '**********' . $m[3],
+            $xml
+        );
+
+        return $xml;
+    }
+
     public function _response_log($content)
     {
-        // Add formatted content to the log
+        $content = $this->maskSensitiveXml((string) $content);
+
         $this->responseLogger->info($content);
         $this->commonLogger->info($content);
     }
 
     public function _request_log($content)
     {
-        // Add formatted content to the log
+        $content = $this->maskSensitiveXml((string) $content);
+
         $this->requestLogger->info($content);
         $this->commonLogger->info($content);
     }
