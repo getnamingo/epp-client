@@ -5,14 +5,14 @@
     "type": "library",
     "authors": [
         {
-            "name": "Taras Kondratyuk",
-            "email": "tk@gepinga.com"
+            "name": "Namingo Team",
+            "email": "help@namingo.org"
         }
     ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "ext-xml": "*",
-        "monolog/monolog": "^3.6"
+        "monolog/monolog": "^3.9"
     },
     "autoload": {
         "psr-4": {
