@@ -656,6 +656,78 @@ abstract class Epp implements EppRegistryInterface
     }
 
     /**
+     * hostUpdateStatus
+     */
+    public function hostUpdateStatus($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+
+            $from[] = '/{{ name }}/';
+            $to[]   = htmlspecialchars($params['hostname']);
+
+            if ($params['command'] === 'add') {
+                $from[] = '/{{ add }}/';
+                $to[]   = "<host:add><host:status s=\"" . htmlspecialchars($params['status']) . "\"/></host:add>\n";
+                $from[] = '/{{ rem }}/';
+                $to[]   = "";
+            } else if ($params['command'] === 'rem') {
+                $from[] = '/{{ add }}/';
+                $to[]   = "";
+                $from[] = '/{{ rem }}/';
+                $to[]   = "<host:rem><host:status s=\"" . htmlspecialchars($params['status']) . "\"/></host:rem>\n";
+            }
+
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[]   = htmlspecialchars($this->prefix . '-host-updateStatus-' . $clTRID);
+
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[]   = '';
+
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+     <command>
+       <update>
+         <host:update
+               xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+           <host:name>{{ name }}</host:name>
+           {{ add }}
+           {{ rem }}
+         </host:update>
+       </update>
+       <clTRID>{{ clTRID }}</clTRID>
+     </command>
+    </epp>');
+
+            $r    = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg  = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg'  => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
      * hostDelete
      */
     public function hostDelete($params = array())
@@ -1071,6 +1143,78 @@ abstract class Epp implements EppRegistryInterface
             $return = array(
                 'code' => $code,
                 'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * contactUpdateStatus
+     */
+    public function contactUpdateStatus($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+
+            $from[] = '/{{ id }}/';
+            $to[]   = htmlspecialchars($params['contactid']);
+
+            if ($params['command'] === 'add') {
+                $from[] = '/{{ add }}/';
+                $to[]   = "<contact:add><contact:status s=\"" . htmlspecialchars($params['status']) . "\"/></contact:add>\n";
+                $from[] = '/{{ rem }}/';
+                $to[]   = "";
+            } else if ($params['command'] === 'rem') {
+                $from[] = '/{{ add }}/';
+                $to[]   = "";
+                $from[] = '/{{ rem }}/';
+                $to[]   = "<contact:rem><contact:status s=\"" . htmlspecialchars($params['status']) . "\"/></contact:rem>\n";
+            }
+
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[]   = htmlspecialchars($this->prefix . '-contact-updateStatus-' . $clTRID);
+
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[]   = '';
+
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+     <command>
+       <update>
+         <contact:update
+               xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+           <contact:id>{{ id }}</contact:id>
+           {{ add }}
+           {{ rem }}
+         </contact:update>
+       </update>
+       <clTRID>{{ clTRID }}</clTRID>
+     </command>
+    </epp>');
+
+            $r    = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg  = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg'  => $msg
             );
         } catch (\Exception $e) {
             $return = array(

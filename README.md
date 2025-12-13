@@ -33,7 +33,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | updateNS | ✅ | N/A | N/A | |
 | updateContact | ✅ | N/A | N/A | |
 | updateAuthinfo | ✅ | N/A | N/A | |
-| updateStatus | ✅ | ❌ | ❌| |
+| updateStatus | ✅ | ✅ | ✅ | |
 | updateDNSSEC | ✅ | N/A | N/A | |
 | renew | ✅ | N/A | N/A | |
 | delete | ✅ | ✅ | ✅ |  |

@@ -25,12 +25,14 @@ interface EppRegistryInterface
     public function hostInfo(array $params);
     public function hostCreate(array $params);
     public function hostUpdate(array $params);
+    public function hostUpdateStatus(array $params);
     public function hostDelete(array $params);
 
     public function contactCheck(array $params);
     public function contactInfo(array $params);
     public function contactCreate(array $params);
     public function contactUpdate(array $params);
+    public function contactUpdateStatus(array $params);
     public function contactDelete(array $params);
     public function contactTransfer(array $params);
 
