@@ -1,6 +1,6 @@
 # Namingo EPP Client
 
-An open-source PHP EPP client supporting 37 domain registry backends. Works with any PHP framework and is fully customizable.
+An open-source PHP EPP client supporting 38 domain registry backends. Works with any PHP framework and is fully customizable.
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
@@ -56,7 +56,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (37 backends and counting)
+### Registry Support (38 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
@@ -94,6 +94,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | SIDN | all | | ✅ | |
 | SWITCH | .ch, .li | | ✅ | |
 | Traficom | .fi | FI | ✅ | |
+| Tucows Registry | all | | ✅ | |
 | Verisign | all | VRSN | ✅ | |
 | ZADNA | .za |  | ✅ | |
 | ZDNS | all |  | ✅ | |
