@@ -1,6 +1,6 @@
 # Namingo EPP Client
 
-An open-source PHP EPP client supporting 38 domain registry backends. Works with any PHP framework and is fully customizable.
+An open-source PHP EPP client supporting 40 domain registry backends. Works with any PHP framework and is fully customizable.
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
@@ -56,7 +56,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (38 backends and counting)
+### Registry Support (40 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
@@ -80,6 +80,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | Identity Digital | all | | ✅ | |
 | IIS | .se, .nu | SE | ✅ | |
 | Internet.ee | .ee | EE | ✅ | |
+| IT.COM | all | | ✅ | |
 | HKIRC | .hk | HK | ✅ | |
 | NASK | .pl | PL | ✅ | |
 | Namingo | all | | ✅ | |
@@ -89,6 +90,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | NORID | .no | NO | ✅ | |
 | .PT | .pt | PT | ✅ | |
 | Registro.it | .it | IT | ✅ | |
+| Regtons | all | | ✅ | |
 | RoTLD | .ro | | ✅ | |
 | RyCE | all | | ✅ | |
 | SIDN | all | | ✅ | |
