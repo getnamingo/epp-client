@@ -47,8 +47,11 @@ try
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;
-} catch(\Pinga\Tembo\Exception\EppException $e) {
-    echo "Error : ".$e->getMessage() . PHP_EOL;
-} catch(Throwable $e) {
-    echo "Error : ".$e->getMessage() . PHP_EOL;
+
+} catch (\Pinga\Tembo\Exception\EppException $e) {
+    echo "Error : " . $e->getMessage() . PHP_EOL;
+    exit(1);
+} catch (Throwable $e) {
+    echo "Error : " . $e->getMessage() . PHP_EOL;
+    exit(1);
 }
