@@ -338,17 +338,4 @@ class FrEpp extends Epp
         throw new EppException("Launch extension not supported!");
     }
 
-    public function _response_log($content)
-    {
-        // Add formatted content to the log
-        $this->responseLogger->info($content);
-        $this->commonLogger->info($content);
-    }
-
-    public function _request_log($content)
-    {
-        // Add formatted content to the log
-        $this->requestLogger->info($content);
-        $this->commonLogger->info($content);
-    }
 }

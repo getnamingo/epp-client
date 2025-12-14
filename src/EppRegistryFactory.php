@@ -2,7 +2,7 @@
 /**
  * Tembo EPP client library
  *
- * Written in 2023-2025 by Taras Kondratyuk (https://getpinga.com)
+ * Written in 2023-2025 by Taras Kondratyuk (https://namingo.org)
  * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
  *
  * @license MIT
@@ -20,6 +20,7 @@ use Pinga\Tembo\Registries\GrEpp;
 use Pinga\Tembo\Registries\HkEpp;
 use Pinga\Tembo\Registries\HrEpp;
 use Pinga\Tembo\Registries\ItEpp;
+use Pinga\Tembo\Registries\LtEpp;
 use Pinga\Tembo\Registries\LvEpp;
 use Pinga\Tembo\Registries\MxEpp;
 use Pinga\Tembo\Registries\NoEpp;
@@ -60,6 +61,9 @@ class EppRegistryFactory
                 break;
             case 'IT':
                 return new ItEpp();
+                break;
+            case 'LT':
+                return new LtEpp();
                 break;
             case 'LV':
                 return new LvEpp();

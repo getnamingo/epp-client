@@ -69,7 +69,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | CORE/Knipp | all | | ✅ | |
 | DENIC | .de | | ✅ | |
 | Domicilium | .im | | ✅ | |
-| DOMREG | .lt | LT | 🚧 | work on extensions |
+| DOMREG | .lt | LT | ✅ | |
 | DRS.UA | all | | ✅ | |
 | EURid | .eu | EU | ✅ | |
 | FORTH-ICS | .gr, .ελ | GR | ✅ | |

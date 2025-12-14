@@ -1,8 +1,8 @@
 <?php
 /**
- * Tembo EPP client library
+ * Namingo EPP client library
  *
- * Written in 2023-2025 by Taras Kondratyuk (https://getpinga.com)
+ * Written in 2023-2025 by Taras Kondratyuk (https://namingo.org)
  * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
  *
  * @license MIT
@@ -14,37 +14,24 @@ use Pinga\Tembo\Epp;
 use Pinga\Tembo\EppRegistryInterface;
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
-use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
-use Monolog\Formatter\LineFormatter;
 
-class VrsnEpp extends Epp
+class LtEpp extends Epp
 {
     protected function addLoginObjects(\XMLWriter $xml): void
     {
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:domain-1.0');
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:contact-1.0');
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:host-1.0');
-        $xml->writeElement('objURI', 'http://www.verisign.com/epp/registry-1.0');
-        $xml->writeElement('objURI', 'http://www.verisign.com/epp/lowbalance-poll-1.0');
-        $xml->writeElement('objURI', 'http://www.verisign.com/epp/rgp-poll-1.0');
+        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:epp-1.0');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-domain-1.2');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-contact-1.1');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-event-1.0');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-permit-1.1');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/domreg-rlock-1.0');
+        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
+        $xml->writeElement('objURI', 'http://www.domreg.lt/epp/xml/authInfo-1.0');
     }
 
     protected function addLoginExtensions(\XMLWriter $xml): void
     {
-        $xml->startElement('svcExtension');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:epp:loginSec-1.0');
-        $xml->writeElement('extURI', 'http://www.verisign.com/epp/whoisInf-1.0');
-        $xml->writeElement('extURI', 'http://www.verisign.com/epp/idnLang-1.0');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:coa-1.0');
-        $xml->writeElement('extURI', 'http://www.verisign-grs.com/epp/namestoreExt-1.1');
-        $xml->writeElement('extURI', 'http://www.verisign.com/epp/sync-1.0');
-        $xml->writeElement('extURI', 'http://www.verisign.com/epp/relatedDomain-1.0');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:verificationCode-1.0');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:rgp-1.0');
-        $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:changePoll-1.0');
-        $xml->endElement(); // svcExtension
     }
 
     /**
@@ -70,35 +57,25 @@ class VrsnEpp extends Epp
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <check>
-      <host:check
-        xmlns:host="urn:ietf:params:xml:ns:host-1.0"
-        xsi:schemaLocation="urn:ietf:params:xml:ns:host-1.0 host-1.0.xsd">
-        <host:name>{{ name }}</host:name>
-      </host:check>
+      <nsgroup:check xmlns:nsgroup="http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0">
+      <nsgroup:name>{{ name }}</nsgroup:name>
+      </nsgroup:check>
     </check>
-  <extension>
-    <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-      <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
-    </namestoreExt:namestoreExt>
-  </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:host-1.0')->chkData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0')->chkData;
 
             $i = 0;
             foreach ($r->cd as $cd) {
                 $i++;
                 $hosts[$i]['name'] = (string)$cd->name;
-                $hosts[$i]['reason'] = (string)$cd->reason;
                 $hosts[$i]['avail'] = (int)$cd->name->attributes()->avail;
             }
 
@@ -139,56 +116,31 @@ class VrsnEpp extends Epp
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
    <info>
-     <host:info
-      xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-       <host:name>{{ name }}</host:name>
-     </host:info>
+     <nsgroup:info xmlns:nsgroup="http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0">
+       <nsgroup:name>{{ name }}</nsgroup:name>
+     </nsgroup:info>
    </info>
-  <extension>
-    <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-      <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
-    </namestoreExt:namestoreExt>
-  </extension>
    <clTRID>{{ clTRID }}</clTRID>
  </command>
 </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:host-1.0')->infData[0];
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0')->infData[0];
             $name = (string)$r->name;
             $addr = array();
             foreach ($r->addr as $ns) {
                 $addr[] = (string)$ns;
             }
-            $status = array();
-            $i = 0;
-            foreach ($r->status as $e) {
-                $i++;
-                $status[$i] = (string)$e->attributes()->s;
-            }
-            $clID = (string)$r->clID;
-            $crID = (string)$r->crID;
-            $crDate = (string)$r->crDate;
-            $upID = (string)$r->upID;
-            $upDate = (string)$r->upDate;
 
             $return = array(
                 'code' => $code,
                 'msg' => $msg,
                 'name' => $name,
-                'status' => $status,
-                'addr' => $addr,
-                'clID' => $clID,
-                'crID' => $crID,
-                'crDate' => $crDate,
-                'upID' => $upID,
-                'upDate' => $upDate
+                'addr' => $addr
             );
         } catch (\Exception $e) {
             $return = array(
@@ -216,105 +168,28 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['hostname']);
-            $from[] = '/{{ ip }}/';
-            $to[] = htmlspecialchars($params['ipaddress'] ?? '');
-            $from[] = '/{{ v }}/';
-            $to[] = (preg_match('/:/', $params['ipaddress'] ?? '') ? 'v6' : 'v4');
+            $nsXml = '';
+            if (!empty($params['ns']) && is_array($params['ns'])) {
+                foreach (array_slice($params['ns'], 0, 13) as $ns) {
+                    $nsXml .= '<nsgroup:ns>' . htmlspecialchars($ns) . '</nsgroup:ns>';
+                }
+            }
+            $from[] = '/{{ ns }}/';
+            $to[]   = $nsXml;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-host-create-' . $clTRID);
             $from[] = "/<\w+:\w+(?:\s+[^>]*)?>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
-      <host:create
-       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-        <host:name>{{ name }}</host:name>
-        <host:addr ip="{{ v }}">{{ ip }}</host:addr>
-      </host:create>
+      <nsgroup:create xmlns:nsgroup="http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0">
+        <nsgroup:name>{{ name }}</nsgroup:name>
+        {{ ns }}
+      </nsgroup:create>
     </create>
-  <extension>
-    <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-      <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
-    </namestoreExt:namestoreExt>
-  </extension>
-    <clTRID>{{ clTRID }}</clTRID>
-  </command>
-</epp>');
-            $r = $this->writeRequest($xml);
-            $code = (int)$r->response->result->attributes()->code;
-            $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:host-1.0')->creData;
-            $name = (string)$r->name;
-
-            $return = array(
-                'code' => $code,
-                'msg' => $msg,
-                'name' => $name
-            );
-        } catch (\Exception $e) {
-            $return = array(
-                'error' => $e->getMessage()
-            );
-        }
-
-        return $return;
-    }
-    
-    /**
-     * hostUpdate
-     */
-    public function hostUpdate($params = array())
-    {
-        if (!$this->isLoggedIn) {
-            return array(
-                'code' => 2002,
-                'msg' => 'Command use error'
-            );
-        }
-
-        $return = array();
-        try {
-            $from = $to = array();
-            $from[] = '/{{ name }}/';
-            $to[] = htmlspecialchars($params['hostname']);
-            $from[] = '/{{ ip1 }}/';
-            $to[] = htmlspecialchars($params['currentipaddress']);
-            $from[] = '/{{ v1 }}/';
-            $to[] = (preg_match('/:/', $params['currentipaddress']) ? 'v6' : 'v4');
-            $from[] = '/{{ ip2 }}/';
-            $to[] = htmlspecialchars($params['newipaddress']);
-            $from[] = '/{{ v2 }}/';
-            $to[] = (preg_match('/:/', $params['newipaddress']) ? 'v6' : 'v4');
-            $from[] = '/{{ clTRID }}/';
-            $clTRID = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-host-update-' . $clTRID);
-            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
-  <command>
-    <update>
-      <host:update
-       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-        <host:name>{{ name }}</host:name>
-        <host:add>
-          <host:addr ip="{{ v2 }}">{{ ip2 }}</host:addr>
-        </host:add>
-        <host:rem>
-          <host:addr ip="{{ v1 }}">{{ ip1 }}</host:addr>
-        </host:rem>
-      </host:update>
-    </update>
-  <extension>
-    <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-      <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
-    </namestoreExt:namestoreExt>
-  </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
@@ -333,6 +208,78 @@ class VrsnEpp extends Epp
         }
 
         return $return;
+    }
+
+    /**
+     * hostUpdate
+     */
+    public function hostUpdate($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ name }}/';
+            $to[] = htmlspecialchars($params['hostname']);
+            $nsXml = '';
+            if (!empty($params['ns']) && is_array($params['ns'])) {
+                foreach (array_slice($params['ns'], 0, 13) as $ns) {
+                    $nsXml .= '<nsgroup:ns>' . htmlspecialchars($ns) . '</nsgroup:ns>';
+                }
+            }
+            $from[] = '/{{ ns }}/';
+            $to[]   = $nsXml;
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-host-update-' . $clTRID);
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <nsgroup:update xmlns:nsgroup="http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0">
+        <nsgroup:name>{{ name }}</nsgroup:name>
+        {{ ns }}
+      </nsgroup:update>
+    </update>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * hostUpdateStatus
+     */
+    public function hostUpdateStatus($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Host update status is not supported!");
     }
 
     /**
@@ -356,21 +303,13 @@ class VrsnEpp extends Epp
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-host-delete-' . $clTRID);
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
       <command>
-        <delete>
-          <host:delete
-           xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-            <host:name>{{ name }}</host:name>
-          </host:delete>
+        <delete>  
+          <nsgroup:delete xmlns:nsgroup="http://www.domreg.lt/epp/xml/domreg-nsgroup-1.0">
+            <nsgroup:name>{{ name }}</nsgroup:name>
+          </nsgroup:delete>
         </delete>
-  <extension>
-    <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-      <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
-    </namestoreExt:namestoreExt>
-  </extension>
         <clTRID>{{ clTRID }}</clTRID>
       </command>
     </epp>');
@@ -403,7 +342,7 @@ class VrsnEpp extends Epp
             );
         }
         
-        throw new EppException("Contacts not supported!");
+        throw new EppException("Contact check is not supported!");
     }
 
     /**
@@ -417,8 +356,90 @@ class VrsnEpp extends Epp
                 'msg' => 'Command use error'
             );
         }
-        
-        throw new EppException("Contacts not supported!");
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ id }}/';
+            $to[] = htmlspecialchars($params['contact']);
+            $from[] = '/{{ authInfo }}/';
+            $authInfo = (isset($params['authInfoPw']) ? "<contact:authInfo>\n<contact:pw><![CDATA[{$params['authInfoPw']}]]></contact:pw>\n</contact:authInfo>" : '');
+            $to[] = $authInfo;
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-info-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <info>
+      <contact:info
+       xmlns:contact="http://www.domreg.lt/epp/xml/domreg-contact-1.1">
+        <contact:id>{{ id }}</contact:id>
+        {{ authInfo }}
+      </contact:info>
+    </info>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-contact-1.1')->infData[0];
+
+            foreach ($r->postalInfo as $e) {
+                $name = (string)$e->name;
+                $org = (string)$e->org;
+                $street1 = $street2 = $street3 = '';
+                for ($i = 0; $i <= 2; $i++) {
+                    ${'street' . ($i + 1)} = (string)$e->addr->street[$i];
+                }
+                $city = (string)$e->addr->city;
+                $state = (string)$e->addr->sp;
+                $postal = (string)$e->addr->pc;
+                $country = (string)$e->addr->cc;
+            }
+            $id = (string)$r->id;
+            $status = array();
+            $i = 0;
+            foreach ($r->status as $e) {
+                $i++;
+                $status[$i] = (string)$e->attributes()->s;
+            }
+            $voice = (string)$r->voice;
+            $email = (string)$r->email;
+            $role = (string)$r->role;
+            $crDate = (string)$r->crDate;
+            $upDate = (string)$r->upDate;
+
+            $return = array(
+                'id' => $id,
+                'code' => $code,
+                'status' => $status,
+                'msg' => $msg,
+                'name' => $name,
+                'org' => $org,
+                'street1' => $street1,
+                'street2' => $street2,
+                'street3' => $street3,
+                'city' => $city,
+                'state' => $state,
+                'postal' => $postal,
+                'country' => $country,
+                'voice' => $voice,
+                'email' => $email,
+                'role' => $role,
+                'crDate' => $crDate,
+                'upDate' => $upDate
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
     }
 
     /**
@@ -432,8 +453,83 @@ class VrsnEpp extends Epp
                 'msg' => 'Command use error'
             );
         }
-        
-        throw new EppException("Contacts not supported!");
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ type }}/';
+            $to[] = htmlspecialchars($params['type']);
+            $from[] = '/{{ name }}/';
+            $to[] = htmlspecialchars($params['firstname'] . ' ' . $params['lastname']);
+            $from[] = '/{{ org }}/';
+            $to[] = htmlspecialchars($params['companyname']);
+            $from[] = '/{{ street1 }}/';
+            $to[] = htmlspecialchars($params['address1']);
+            $from[] = '/{{ city }}/';
+            $to[] = htmlspecialchars($params['city']);
+            $from[] = '/{{ state }}/';
+            $to[] = htmlspecialchars($params['state']);
+            $from[] = '/{{ postcode }}/';
+            $to[] = htmlspecialchars($params['postcode']);
+            $from[] = '/{{ country }}/';
+            $to[] = htmlspecialchars($params['country']);
+            $from[] = '/{{ phonenumber }}/';
+            $to[] = htmlspecialchars($params['fullphonenumber']);
+            $from[] = '/{{ email }}/';
+            $to[] = htmlspecialchars($params['email']);
+            $from[] = '/{{ orgcode }}/';
+            $to[] = htmlspecialchars($params['orgcode']);
+            $from[] = '/{{ role }}/';
+            $to[] = htmlspecialchars($params['role']);
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-create-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <contact:create
+       xmlns:contact="http://www.domreg.lt/epp/xml/domreg-contact-1.1">
+        <contact:postalInfo type="{{ type }}">
+          <contact:name>{{ name }}</contact:name>
+          <contact:org>{{ org }}</contact:org>
+          <contact:addr>
+            <contact:street>{{ street1 }}</contact:street>
+            <contact:city>{{ city }}</contact:city>
+            <contact:sp>{{ state }}</contact:sp>
+            <contact:pc>{{ postcode }}</contact:pc>
+            <contact:cc>{{ country }}</contact:cc>
+          </contact:addr>
+        </contact:postalInfo>
+        <contact:voice>{{ phonenumber }}</contact:voice>
+        <contact:email>{{ email }}</contact:email>
+        <contact:orgcode>{{ orgcode }}</contact:orgcode>
+        <contact:role>{{ role }}</contact:role>
+      </contact:create>
+    </create>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-contact-1.1')->creData;
+            $id = (string)$r->id;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg,
+                'id' => $id
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
     }
 
     /**
@@ -447,8 +543,96 @@ class VrsnEpp extends Epp
                 'msg' => 'Command use error'
             );
         }
-        
-        throw new EppException("Contacts not supported!");
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ type }}/';
+            $to[] = htmlspecialchars($params['type']);
+            $from[] = '/{{ id }}/';
+            $to[] = htmlspecialchars($params['id']);
+            $from[] = '/{{ name }}/';
+            $to[] = htmlspecialchars($params['firstname'] . ' ' . $params['lastname']);
+            $from[] = '/{{ org }}/';
+            $to[] = htmlspecialchars($params['companyname']);
+            $from[] = '/{{ street1 }}/';
+            $to[] = htmlspecialchars($params['address1']);
+            $from[] = '/{{ city }}/';
+            $to[] = htmlspecialchars($params['city']);
+            $from[] = '/{{ state }}/';
+            $to[] = htmlspecialchars($params['state']);
+            $from[] = '/{{ postcode }}/';
+            $to[] = htmlspecialchars($params['postcode']);
+            $from[] = '/{{ country }}/';
+            $to[] = htmlspecialchars($params['country']);
+            $from[] = '/{{ voice }}/';
+            $to[] = htmlspecialchars($params['fullphonenumber']);
+            $from[] = '/{{ email }}/';
+            $to[] = htmlspecialchars($params['email']);
+            $from[] = '/{{ orgcode }}/';
+            $to[] = htmlspecialchars($params['orgcode']);
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-update-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <contact:update xmlns:contact="http://www.domreg.lt/epp/xml/domreg-contact-1.1">
+        <contact:id>{{ id }}</contact:id>
+        <contact:chg>
+          <contact:postalInfo type="{{ type }}">
+            <contact:name>{{ name }}</contact:name>
+            <contact:org>{{ org }}</contact:org>
+            <contact:addr>
+              <contact:street>{{ street1 }}</contact:street>
+              <contact:city>{{ city }}</contact:city>
+              <contact:sp>{{ state }}</contact:sp>
+              <contact:pc>{{ postcode }}</contact:pc>
+              <contact:cc>{{ country }}</contact:cc>
+            </contact:addr>
+          </contact:postalInfo>
+          <contact:voice>{{ voice }}</contact:voice>
+          <contact:email>{{ email }}</contact:email>
+          <contact:orgcode>{{ orgcode }}</contact:orgcode>
+        </contact:chg>
+      </contact:update>
+    </update>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * contactUpdateStatus
+     */
+    public function contactUpdateStatus($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Contact update status is not supported!");
     }
 
     /**
@@ -462,8 +646,57 @@ class VrsnEpp extends Epp
                 'msg' => 'Command use error'
             );
         }
-        
-        throw new EppException("Contacts not supported!");
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ id }}/';
+            $to[] = htmlspecialchars($params['contact']);
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-delete-' . $clTRID);
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+ <command>
+   <delete>
+     <contact:delete
+      xmlns:contact="http://www.domreg.lt/epp/xml/domreg-contact-1.1">
+       <contact:id>{{ id }}</contact:id>
+     </contact:delete>
+   </delete>
+   <clTRID>{{ clTRID }}</clTRID>
+ </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * contactTransfer
+     */
+    public function contactTransfer($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Contact transfer is not supported!");
     }
 
     /**
@@ -482,46 +715,32 @@ class VrsnEpp extends Epp
         try {
             $from = $to = array();
             $text = '';
-            $tld_text = '';
             foreach ($params['domains'] as $name) {
                 $text .= '<domain:name>' . $name . '</domain:name>' . "\n";
-                $parts = explode('.', $name);
-                $tld = end($parts);
-                $tld_text .= '<namestoreExt:subProduct>' . $tld . '</namestoreExt:subProduct>' . "\n";
             }
             $from[] = '/{{ names }}/';
             $to[] = $text;
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld_text;
             $from[] = '/{{ clTRID }}/';
             $microtime = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-check-' . $microtime);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <check>
       <domain:check
-        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-        xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+        xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
         {{ names }}
       </domain:check>
     </check>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-         {{ tld }}
-      </namestoreExt:namestoreExt>
-    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->chkData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->chkData;
 
             $i = 0;
             foreach ($r->cd as $cd) {
@@ -529,7 +748,6 @@ class VrsnEpp extends Epp
                 $domains[$i]['name'] = (string)$cd->name;
                 $availStr = (string)$cd->name->attributes()->avail;
                 $domains[$i]['avail'] = ($availStr === 'true' || $availStr === '1') ? true : false;
-                $domains[$i]['reason'] = (string)$cd->reason;
             }
 
             $return = array(
@@ -558,7 +776,7 @@ class VrsnEpp extends Epp
             );
         }
 
-        throw new EppException("Launch extension not supported!");
+        throw new EppException("Claims extension is not supported!");
     }
 
     /**
@@ -578,42 +796,57 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ domainname }}/';
             $to[] = htmlspecialchars($params['domainname']);
-            $from[] = '/{{ authInfo }}/';
-            $authInfo = (isset($params['authInfoPw']) ? "<domain:authInfo>\n<domain:pw><![CDATA[{$params['authInfoPw']}]]></domain:pw>\n</domain:authInfo>" : '');
-            $to[] = $authInfo;
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
+            $extXml = '';
+            if (!empty($params['authinfo'])) {
+                $action = $params['authinfo'];
+
+                // allow true => request
+                if ($action === true) {
+                    $action = 'request';
+                }
+
+                if ($action === 'request' || $action === 'cancel') {
+                    $extXml = '<extension>
+              <authInfo:info xmlns:authInfo="http://www.domreg.lt/epp/xml/authInfo-1.0">
+                <authInfo:' . $action . '/>
+              </authInfo:info>
+            </extension>';
+                }
+            }
+            $from[] = '/{{ extension }}/';
+            $to[]   = $extXml;
             $from[] = '/{{ clTRID }}/';
             $microtime = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-info-' . $microtime);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
       <domain:info
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-       xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
-        <domain:name hosts="all">{{ domainname }}</domain:name>
-        {{ authInfo }}
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
+        <domain:name>{{ domainname }}</domain:name>
       </domain:info>
     </info>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
+    {{ extension }}
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
-            $r = $this->writeRequest($xml);
+            $resp = $this->writeRequest($xml);
+            $r = $resp;
+            $authValidUntil = '';
+            if (isset($resp->response->extension)) {
+                $ext = $resp->response->extension
+                    ->children('http://www.domreg.lt/epp/xml/authInfo-1.0');
+
+                if (isset($ext->infData->validUntil)) {
+                    $authValidUntil = (string)$ext->infData->validUntil;
+                }
+            }
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->infData;
             $name = (string)$r->name;
             $roid = (string)$r->roid;
             $status = array();
@@ -627,14 +860,13 @@ class VrsnEpp extends Epp
             $i = 0;
             foreach ($r->contact as $e) {
                 $i++;
-                $contact[$i]['type'] = (string)$e->attributes()->type;
                 $contact[$i]['id'] = (string)$e;
             }
             $ns = array();
             $i = 0;
-            foreach ($r->ns->hostObj as $hostObj) {
+            foreach ($r->ns->hostAttr as $hostAttr) {
                 $i++;
-                $ns[$i] = (string)$hostObj;
+                $ns[$i] = (string)$hostAttr;
             }
             $host = array();
             $i = 0;
@@ -642,14 +874,14 @@ class VrsnEpp extends Epp
                 $i++;
                 $host[$i] = (string)$hostname;
             }
-            $clID = (string)$r->clID;
-            $crID = (string)$r->crID;
             $crDate = (string)$r->crDate;
-            $upID = (string)$r->upID;
             $upDate = (string)$r->upDate;
             $exDate = (string)$r->exDate;
             $trDate = (string)$r->trDate;
-            $authInfo = (string)$r->authInfo->pw;
+            $authPw = '';
+            if (isset($r->authInfo->pw)) {
+                $authPw = (string)$r->authInfo->pw;
+            }
 
             $return = array(
                 'code' => $code,
@@ -661,14 +893,12 @@ class VrsnEpp extends Epp
                 'contact' => $contact,
                 'ns' => $ns,
                 'host' => $host,
-                'clID' => $clID,
-                'crID' => $crID,
                 'crDate' => $crDate,
-                'upID' => $upID,
                 'upDate' => $upDate,
                 'exDate' => $exDate,
                 'trDate' => $trDate,
-                'authInfo' => $authInfo
+                'authInfoPw' => $authPw,
+                'authInfoValidUntil' => $authValidUntil
             );
         } catch (\Exception $e) {
             $return = array(
@@ -696,106 +926,120 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['domainname']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-info-' . $clTRID);
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
       <command>
         <info>
           <domain:info
-           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-           xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
-            <domain:name hosts="all">{{ name }}</domain:name>
+           xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
+            <domain:name>{{ name }}</domain:name>
           </domain:info>
         </info>
-        <extension>
-          <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-            <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-          </namestoreExt:namestoreExt>
-        </extension>
         <clTRID>{{ clTRID }}</clTRID>
       </command>
     </epp>');
             $r = $this->writeRequest($xml);
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->infData;
 
-            $add = $rem = array();
-            $i = 0;
-            foreach ($r->ns->hostObj as $ns) {
-                $i++;
-                $ns = (string)$ns;
-                if (!$ns) {
-                    continue;
+            $currentNs = array();
+            foreach ($r->ns->hostAttr as $hostAttr) {
+                $hostName = (string)$hostAttr->hostName;
+                $ipv4 = '';
+                $ipv6 = '';
+
+                foreach ($hostAttr->hostAddr as $hostAddr) {
+                    $ipType = (string)$hostAddr->attributes()->ip;
+                    if ($ipType === 'v4') {
+                        $ipv4 = (string)$hostAddr;
+                    } elseif ($ipType === 'v6') {
+                        $ipv6 = (string)$hostAddr;
+                    }
                 }
 
-                $rem["ns{$i}"] = $ns;
+                $currentNs[$hostName] = array_filter([
+                    'hostName' => $hostName,
+                    'ipv4' => $ipv4,
+                    'ipv6' => $ipv6
+                ]);
             }
+            
+            $add = $rem = array();
+            foreach ($params['nss'] as $ns) {
+                if (is_array($ns)) {
+                    $hostName = $ns['hostName'];
+                    $ipv4 = $ns['ipv4'] ?? '';
+                    $ipv6 = $ns['ipv6'] ?? '';
+                    $nsKey = $hostName . ($ipv4 ? "|v4:$ipv4" : '') . ($ipv6 ? "|v6:$ipv6" : '');
 
-            foreach ($params as $k => $v) {
-                if (!$v) {
-                    continue;
-                }
-
-                if (!preg_match("/^ns\d$/i", $k)) {
-                    continue;
-                }
-
-                if ($k0 = array_search($v, $rem)) {
-                    unset($rem[$k0]);
+                    if (!isset($currentNs[$hostName]) || $currentNs[$hostName] != $ns) {
+                        $add[$nsKey] = $ns;
+                    }
                 } else {
-                    $add[$k] = $v;
+                    // Handle simple hostObj case
+                    if (!isset($currentNs[$ns])) {
+                        $add[$ns] = ['hostName' => $ns];
+                    }
+                }
+            }
+            
+            foreach ($currentNs as $hostName => $nsData) {
+                if (!in_array($hostName, array_column($params['nss'], 'hostName'))) {
+                    $rem[$hostName] = $nsData;
                 }
             }
 
             if (!empty($add) || !empty($rem)) {
                 $from = $to = array();
-                $text = '';
-                foreach ($add as $k => $v) {
-                    $text.= '<domain:hostObj>' . $v . '</domain:hostObj>' . "\n";
+                $addXml = '';
+                foreach ($add as $ns) {
+                    $addXml .= '<domain:hostAttr>';
+                    $addXml .= '<domain:hostName>' . htmlspecialchars($ns['hostName']) . '</domain:hostName>';
+                    if (!empty($ns['ipv4'])) {
+                        $addXml .= '<domain:hostAddr ip="v4">' . htmlspecialchars($ns['ipv4']) . '</domain:hostAddr>';
+                    }
+                    if (!empty($ns['ipv6'])) {
+                        $addXml .= '<domain:hostAddr ip="v6">' . htmlspecialchars($ns['ipv6']) . '</domain:hostAddr>';
+                    }
+                    $addXml .= '</domain:hostAttr>' . "\n";
                 }
 
                 $from[] = '/{{ add }}/';
-                $to[] = (empty($text) ? '' : "<domain:add><domain:ns>\n{$text}</domain:ns></domain:add>\n");
-                $text = '';
-                foreach ($rem as $k => $v) {
-                    $text.= '<domain:hostObj>' . $v . '</domain:hostObj>' . "\n";
+                $to[] = (empty($addXml) ? '' : "<domain:add><domain:ns>\n{$addXml}</domain:ns></domain:add>\n");
+
+                $remXml = '';
+                foreach ($rem as $ns) {
+                    $remXml .= '<domain:hostAttr>';
+                    $remXml .= '<domain:hostName>' . htmlspecialchars($ns['hostName']) . '</domain:hostName>';
+                    if (!empty($ns['ipv4'])) {
+                        $remXml .= '<domain:hostAddr ip="v4">' . htmlspecialchars($ns['ipv4']) . '</domain:hostAddr>';
+                    }
+                    if (!empty($ns['ipv6'])) {
+                        $remXml .= '<domain:hostAddr ip="v6">' . htmlspecialchars($ns['ipv6']) . '</domain:hostAddr>';
+                    }
+                    $remXml .= '</domain:hostAttr>' . "\n";
                 }
 
                 $from[] = '/{{ rem }}/';
-                $to[] = (empty($text) ? '' : "<domain:rem><domain:ns>\n{$text}</domain:ns></domain:rem>\n");
+                $to[] = (empty($remXml) ? '' : "<domain:rem><domain:ns>\n{$remXml}</domain:ns></domain:rem>\n");
                 $from[] = '/{{ name }}/';
                 $to[] = htmlspecialchars($params['domainname']);
-                $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-                $from[] = '/{{ tld }}/';
-                $to[] = $tld;
                 $from[] = '/{{ clTRID }}/';
                 $clTRID = str_replace('.', '', round(microtime(1), 3));
                 $to[] = htmlspecialchars($this->prefix . '-domain-updateNS-' . $clTRID);
                 $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+    <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
       <command>
         <update>
           <domain:update
-           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-           xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+           xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
             <domain:name>{{ name }}</domain:name>
-        {{ add }}
-        {{ rem }}
+            {{ add }}
+            {{ rem }}
           </domain:update>
         </update>
-        <extension>
-          <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-            <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-          </namestoreExt:namestoreExt>
-        </extension>
         <clTRID>{{ clTRID }}</clTRID>
       </command>
     </epp>');
@@ -828,8 +1072,62 @@ class VrsnEpp extends Epp
                 'msg' => 'Command use error'
             );
         }
-        
-        throw new EppException("Contacts not supported!");
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ name }}/';
+            $to[] = htmlspecialchars($params['domainname']);
+            if ($params['contacttype'] === 'registrant') {
+                $from[] = '/{{ add }}/';
+                $to[] = "";
+                $from[] = '/{{ rem }}/';
+                $to[] = "";
+                $from[] = '/{{ chg }}/';
+                $to[] = "<domain:chg><domain:registrant>".htmlspecialchars($params['new_contactid'])."</domain:registrant></domain:chg>\n";
+            } else {
+                $from[] = '/{{ add }}/';
+                $to[] = "<domain:add><domain:contact>".htmlspecialchars($params['new_contactid'])."</domain:contact></domain:add>\n";
+                $from[] = '/{{ rem }}/';
+                $to[] = "<domain:rem><domain:contact>".htmlspecialchars($params['old_contactid'])."</domain:contact></domain:rem>\n";
+                $from[] = '/{{ chg }}/';
+                $to[] = "";    
+            }
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-domain-updateContact-' . $clTRID);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+ <command>
+   <update>
+     <domain:update
+           xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
+       <domain:name>{{ name }}</domain:name>
+       {{ add }}
+       {{ rem }}
+       {{ chg }}
+     </domain:update>
+   </update>
+   <clTRID>{{ clTRID }}</clTRID>
+ </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
     }
     
     /**
@@ -844,67 +1142,7 @@ class VrsnEpp extends Epp
             );
         }
 
-        $return = array();
-        try {
-            $from = $to = array();
-            $from[] = '/{{ name }}/';
-            $to[] = htmlspecialchars($params['domainname']);
-            if ($params['command'] === 'add') {
-            $from[] = '/{{ add }}/';
-            $to[] = "<domain:add><domain:status s=\"".htmlspecialchars($params['status'])."\"/></domain:add>\n";
-            $from[] = '/{{ rem }}/';
-            $to[] = "";    
-            } else if ($params['command'] === 'rem') {
-            $from[] = '/{{ add }}/';
-            $to[] = "";    
-            $from[] = '/{{ rem }}/';
-            $to[] = "<domain:rem><domain:status s=\"".htmlspecialchars($params['status'])."\"/></domain:rem>\n";
-            }
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
-            $from[] = '/{{ clTRID }}/';
-            $clTRID = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-domain-updateStatus-' . $clTRID);
-            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
-            $to[] = '';
-            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
- <command>
-   <update>
-     <domain:update
-           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-           xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
-       <domain:name>{{ name }}</domain:name>
-       {{ add }}
-       {{ rem }}
-     </domain:update>
-   </update>
-   <extension>
-     <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-       <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-     </namestoreExt:namestoreExt>
-   </extension>
-   <clTRID>{{ clTRID }}</clTRID>
- </command>
-</epp>');
-            $r = $this->writeRequest($xml);
-            $code = (int)$r->response->result->attributes()->code;
-            $msg = (string)$r->response->result->msg;
-
-            $return = array(
-                'code' => $code,
-                'msg' => $msg
-            );
-        } catch (\Exception $e) {
-            $return = array(
-                'error' => $e->getMessage()
-            );
-        }
-
-        return $return;
+        throw new EppException("Domain status update is not supported!");
     }
     
     /**
@@ -919,63 +1157,9 @@ class VrsnEpp extends Epp
             );
         }
 
-        $return = array();
-        try {
-            $from = $to = array();
-            $from[] = '/{{ name }}/';
-            $to[] = htmlspecialchars($params['domainname']);
-            $from[] = '/{{ authInfo }}/';
-            $to[] = htmlspecialchars($params['authInfo']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
-            $from[] = '/{{ clTRID }}/';
-            $clTRID = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-domain-updateAuthinfo-' . $clTRID);
-            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
-            $to[] = '';
-            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
- <command>
-   <update>
-     <domain:update
-           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-           xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
-       <domain:name>{{ name }}</domain:name>
-       <domain:chg>
-         <domain:authInfo>
-           <domain:pw>{{ authInfo }}</domain:pw>
-         </domain:authInfo>
-       </domain:chg>
-     </domain:update>
-   </update>
-   <extension>
-     <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-       <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-     </namestoreExt:namestoreExt>
-   </extension>
-   <clTRID>{{ clTRID }}</clTRID>
- </command>
-</epp>');
-            $r = $this->writeRequest($xml);
-            $code = (int)$r->response->result->attributes()->code;
-            $msg = (string)$r->response->result->msg;
-
-            $return = array(
-                'code' => $code,
-                'msg' => $msg
-            );
-        } catch (\Exception $e) {
-            $return = array(
-                'error' => $e->getMessage()
-            );
-        }
-
-        return $return;
+        throw new EppException("Domain authinfo update is not supported!");
     }
-    
+
     /**
      * domainUpdateDNSSEC
      */
@@ -1044,37 +1228,27 @@ class VrsnEpp extends Epp
           </secDNS:dsData>
           </secDNS:add>";
             }
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-updateDNSSEC-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
  <command>
    <update>
      <domain:update
-           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-           xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
        <domain:name>{{ name }}</domain:name>
      </domain:update>
    </update>
    <extension>
      <secDNS:update
-        xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1"
-        xsi:schemaLocation="urn:ietf:params:xml:ns:secDNS-1.1 secDNS-1.1.xsd">
-        {{ add }}
-        {{ rem }}
-        {{ addrem }}
+       xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+       {{ add }}
+       {{ rem }}
+       {{ addrem }}
      </secDNS:update>
-     <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-       <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-     </namestoreExt:namestoreExt>
    </extension>
    <clTRID>{{ clTRID }}</clTRID>
  </command>
@@ -1095,7 +1269,7 @@ class VrsnEpp extends Epp
 
         return $return;
     }
-    
+
     /**
      * domainTransfer
      */
@@ -1113,132 +1287,56 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['domainname']);
-            switch (htmlspecialchars($params['op'])) {
-                case 'request':
-                    $from[] = '/{{ years }}/';
-                    $to[] = (int)($params['years']);
-                    $from[] = '/{{ authInfoPw }}/';
-                    $to[] = htmlspecialchars($params['authInfoPw']);
-                    $xmltype = 'req';
-                    break;
-                case 'query':
-                    $from[] = '/{{ type }}/';
-                    $to[] = 'query';
-                    $xmltype = 'oth';
-                    break;
-                case 'cancel':
-                    $from[] = '/{{ type }}/';
-                    $to[] = 'cancel';
-                    $xmltype = 'oth';
-                    break;
-                case 'reject':
-                    $from[] = '/{{ type }}/';
-                    $to[] = 'reject';
-                    $xmltype = 'oth';
-                    break;
-                case 'approve':
-                    $xmltype = 'apr';
-                    break;
-                default:
-                    throw new EppException('Invalid value for transfer:op specified.');
-                    break;
+            $op = htmlspecialchars((string)($params['op'] ?? ''));
+            if ($op !== 'request') {
+                throw new EppException("Unsupported value for transfer:op: '{$op}'. Only 'request' is allowed.");
             }
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
+            $from[] = '/{{ trType }}/';
+            $to[]   = isset($params['trType']) ? htmlspecialchars($params['trType']): '';
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $from[] = '/{{ tech }}/';
+            $to[]   = isset($params['tech']) ? htmlspecialchars($params['tech']): '';
+            $authInfoXml = '';
+            if (!empty($params['authInfoPw'])) {
+                $authInfoXml = "<domain:authInfo>\n<domain:pw>" .
+                    htmlspecialchars((string)$params['authInfoPw']) .
+                    "</domain:pw>\n</domain:authInfo>";
+            }
+            $from[] = '/{{ authInfo }}/';
+            $to[]   = $authInfoXml;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-transfer-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
-            if ($xmltype === 'req') {
-                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
               <command>
                 <transfer op="request">
                   <domain:transfer
-                   xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+                   xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
                     <domain:name>{{ name }}</domain:name>
-                    <domain:period unit="y">{{ years }}</domain:period>
-                    <domain:authInfo>
-                      <domain:pw>{{ authInfoPw }}</domain:pw>
-                    </domain:authInfo>
+                    <domain:trType>{{ trType }}</domain:trType>
+                    {{ authInfo }}
+                    <domain:ns/>
+                    <domain:registrant>{{ registrant }}</domain:registrant>
+                    <domain:contact>{{ tech }}</domain:contact>
                   </domain:transfer>
                 </transfer>
-                <extension>
-                  <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-                    <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-                  </namestoreExt:namestoreExt>
-                </extension>
                 <clTRID>{{ clTRID }}</clTRID>
               </command>
-            </epp>');
-            } else if ($xmltype === 'apr') {
-                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
-              <command>
-                <transfer op="approve">
-                  <domain:transfer
-                   xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-                    <domain:name>{{ name }}</domain:name>
-                  </domain:transfer>
-                </transfer>
-                <extension>
-                  <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-                    <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-                  </namestoreExt:namestoreExt>
-                </extension>
-                <clTRID>{{ clTRID }}</clTRID>
-              </command>
-            </epp>');
-            } else if ($xmltype === 'oth') {
-                $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-            <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
-              <command>
-                <transfer op="{{ type }}">
-                  <domain:transfer
-                   xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-                    <domain:name>{{ name }}</domain:name>
-                  </domain:transfer>
-                </transfer>
-                <extension>
-                  <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-                    <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-                  </namestoreExt:namestoreExt>
-                </extension>
-                <clTRID>{{ clTRID }}</clTRID>
-              </command>
-            </epp>');
-            }
-            
+            </epp>');           
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->trnData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->trnData;
             $name = (string)($r->name ?? 'N/A');
-            $trStatus = (string)($r->trStatus ?? 'N/A');
-            $reID = (string)($r->reID ?? 'N/A');
-            $reDate = (string)($r->reDate ?? 'N/A');
-            $acID = (string)($r->acID ?? 'N/A');
-            $acDate = (string)($r->acDate ?? 'N/A');
-            $exDate = (string)($r->exDate ?? 'N/A');
 
             $return = array(
                 'code' => $code,
                 'msg' => $msg,
-                'name' => $name,
-                'trStatus' => $trStatus,
-                'reID' => $reID,
-                'reDate' => $reDate,
-                'acID' => $acID,
-                'acDate' => $acDate,
-                'exDate' => $exDate
+                'name' => $name
             );
 
         } catch (\Exception $e) {
@@ -1269,57 +1367,57 @@ class VrsnEpp extends Epp
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
-            if (isset($params['nss'])) {
-                $text = '';
+
+            $text = '';
+            if (!empty($params['nss']) && is_array($params['nss'])) {
                 foreach ($params['nss'] as $hostObj) {
-                    $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
+                    $text .= "<domain:hostAttr>\n";
+                    if (!empty($hostObj['hostName'])) {
+                        $text .= '  <domain:hostName>' . htmlspecialchars($hostObj['hostName']) . "</domain:hostName>\n";
+                    }
+                    if (!empty($hostObj['ipv4'])) {
+                        $text .= '  <domain:hostAddr ip="v4">' . htmlspecialchars($hostObj['ipv4']) . "</domain:hostAddr>\n";
+                    }
+                    if (!empty($hostObj['ipv6'])) {
+                        $text .= '  <domain:hostAddr ip="v6">' . htmlspecialchars($hostObj['ipv6']) . "</domain:hostAddr>\n";
+                    }
+                    $text .= "</domain:hostAttr>\n";
                 }
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = $text;
-            } else {
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = '';
             }
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
-            $from[] = '/{{ authInfoPw }}/';
-            $to[] = htmlspecialchars($params['authInfoPw']);
+            $from[] = '/{{ hostObjs }}/';
+            $to[]   = $text;
+
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $from[] = '/{{ tech }}/';
+            $to[]   = isset($params['tech']) ? htmlspecialchars($params['tech']): '';
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-create-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
       <domain:create
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
         <domain:name>{{ name }}</domain:name>
         <domain:period unit="y">{{ period }}</domain:period>
         <domain:ns>
           {{ hostObjs }}
         </domain:ns>
-        <domain:authInfo>
-          <domain:pw>{{ authInfoPw }}</domain:pw>
-        </domain:authInfo>
+        <domain:registrant>{{ registrant }}</domain:registrant>
+        <domain:contact>{{ tech }}</domain:contact>
       </domain:create>
     </create>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->creData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->creData;
             $name = (string)$r->name;
             $crDate = (string)$r->crDate;
             $exDate = (string)$r->exDate;
@@ -1359,19 +1457,30 @@ class VrsnEpp extends Epp
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ period }}/';
             $to[] = (int)($params['period']);
-            if (isset($params['nss'])) {
-                $text = '';
+
+            $text = '';
+            if (!empty($params['nss']) && is_array($params['nss'])) {
                 foreach ($params['nss'] as $hostObj) {
-                    $text .= '<domain:hostObj>' . $hostObj . '</domain:hostObj>' . "\n";
+                    $text .= "<domain:hostAttr>\n";
+                    if (!empty($hostObj['hostName'])) {
+                        $text .= '  <domain:hostName>' . htmlspecialchars($hostObj['hostName']) . "</domain:hostName>\n";
+                    }
+                    if (!empty($hostObj['ipv4'])) {
+                        $text .= '  <domain:hostAddr ip="v4">' . htmlspecialchars($hostObj['ipv4']) . "</domain:hostAddr>\n";
+                    }
+                    if (!empty($hostObj['ipv6'])) {
+                        $text .= '  <domain:hostAddr ip="v6">' . htmlspecialchars($hostObj['ipv6']) . "</domain:hostAddr>\n";
+                    }
+                    $text .= "</domain:hostAttr>\n";
                 }
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = $text;
-            } else {
-                $from[] = '/{{ hostObjs }}/';
-                $to[] = '';
             }
-            $from[] = '/{{ authInfoPw }}/';
-            $to[] = htmlspecialchars($params['authInfoPw']);
+            $from[] = '/{{ hostObjs }}/';
+            $to[]   = $text;
+
+            $from[] = '/{{ registrant }}/';
+            $to[]   = isset($params['registrant']) ? htmlspecialchars($params['registrant']): '';
+            $from[] = '/{{ tech }}/';
+            $to[]   = isset($params['tech']) ? htmlspecialchars($params['tech']): '';
             if ($params['dnssec_records'] == 1) {
                 $from[] = '/{{ dnssec_data }}/';
                 $to[] = "<secDNS:dsData>
@@ -1395,39 +1504,30 @@ class VrsnEpp extends Epp
             <secDNS:digest>".htmlspecialchars($params['digest_2'])."</secDNS:digest>
           </secDNS:dsData>";
             }
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-createDNSSEC-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
       <domain:create
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
         <domain:name>{{ name }}</domain:name>
         <domain:period unit="y">{{ period }}</domain:period>
         <domain:ns>
           {{ hostObjs }}
         </domain:ns>
-        <domain:authInfo>
-          <domain:pw>{{ authInfoPw }}</domain:pw>
-        </domain:authInfo>
+        <domain:registrant>{{ registrant }}</domain:registrant>
+        <domain:contact>{{ tech }}</domain:contact>
       </domain:create>
     </create>
     <extension>
       <secDNS:create xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
         {{ dnssec_data }}
       </secDNS:create>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
     </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
@@ -1435,7 +1535,7 @@ class VrsnEpp extends Epp
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->creData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->creData;
             $name = (string)$r->name;
             $crDate = (string)$r->crDate;
             $exDate = (string)$r->exDate;
@@ -1468,7 +1568,7 @@ class VrsnEpp extends Epp
             );
         }
 
-        throw new EppException("Launch extension not supported!");
+        throw new EppException("Claims extension is not supported!");
     }
     
     /**
@@ -1483,7 +1583,7 @@ class VrsnEpp extends Epp
             );
         }
 
-        throw new EppException("Launch extension not supported!");
+        throw new EppException("Sunrise is not supported!");
     }
 
     /**
@@ -1503,36 +1603,25 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['domainname']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-renew-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
       <domain:info
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-       xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
-        <domain:name hosts="all">{{ name }}</domain:name>
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
+        <domain:name>{{ name }}</domain:name>
       </domain:info>
     </info>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
             $r = $this->writeRequest($xml);
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->infData;
 
             $expDate = (string)$r->exDate;
             $expDate = preg_replace("/^(\d+\-\d+\-\d+)\D.*$/", "$1", $expDate);
@@ -1543,37 +1632,27 @@ class VrsnEpp extends Epp
             $to[] = htmlspecialchars($params['regperiod']);
             $from[] = '/{{ expDate }}/';
             $to[] = htmlspecialchars($expDate);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-renew-' . $clTRID);
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <renew>
       <domain:renew
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
         <domain:name>{{ name }}</domain:name>
         <domain:curExpDate>{{ expDate }}</domain:curExpDate>
         <domain:period unit="y">{{ regperiod }}</domain:period>
       </domain:renew>
     </renew>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->renData;
+            $r = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-domain-1.2')->renData;
             $name = (string)$r->name;
             $exDate = (string)$r->exDate;
 
@@ -1609,30 +1688,20 @@ class VrsnEpp extends Epp
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['domainname']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-delete-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <delete>
       <domain:delete
-       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+       xmlns:domain="http://www.domreg.lt/epp/xml/domreg-domain-1.2">
         <domain:name>{{ name }}</domain:name>
       </domain:delete>
     </delete>
-    <extension>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
@@ -1665,56 +1734,7 @@ class VrsnEpp extends Epp
             );
         }
 
-        $return = array();
-        try {
-            $from = $to = array();
-            $from[] = '/{{ name }}/';
-            $to[] = htmlspecialchars($params['domainname']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
-            $from[] = '/{{ clTRID }}/';
-            $clTRID = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-domain-restore-' . $clTRID);
-            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
-            $to[] = '';
-            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
-  <command>
-    <update>
-      <domain:update xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>{{ name }}</domain:name>
-        <domain:chg/>
-      </domain:update>
-    </update>
-    <extension>
-      <rgp:update xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0">
-        <rgp:restore op="request"/>
-      </rgp:update>
-      <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-        <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-      </namestoreExt:namestoreExt>
-    </extension>
-    <clTRID>{{ clTRID }}</clTRID>
-  </command>
-</epp>');
-            $r = $this->writeRequest($xml);
-            $code = (int)$r->response->result->attributes()->code;
-            $msg = (string)$r->response->result->msg;
-
-            $return = array(
-                'code' => $code,
-                'msg' => $msg
-            );
-        } catch (\Exception $e) {
-            $return = array(
-                'error' => $e->getMessage()
-            );
-        }
-
-        return $return;
+        throw new EppException("Domain restore is not supported!");
     }
 
     /**
@@ -1729,76 +1749,63 @@ class VrsnEpp extends Epp
             );
         }
 
+        throw new EppException("Domain report is not supported!");
+    }
+
+    /**
+     * pollReq
+     */
+    public function pollReq()
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
         $return = array();
         try {
             $from = $to = array();
-            $from[] = '/{{ name }}/';
-            $to[] = htmlspecialchars($params['domainname']);
-            $tld = strtoupper(str_replace('.', '', strstr($params['domainname'], '.')));
-            $from[] = '/{{ tld }}/';
-            $to[] = $tld;
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-domain-report-' . $clTRID);
+            $to[] = htmlspecialchars($this->prefix . '-poll-req-' . $clTRID);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-   <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0
-        epp-1.0.xsd">
+   <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
      <command>
-       <update>
-         <domain:update
-          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
-          xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0
-          domain-1.0.xsd">
-           <domain:name>{{ name }}</domain:name>
-           <domain:chg/>
-         </domain:update>
-       </update>
-       <extension>
-         <rgp:update xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0"
-          xsi:schemaLocation="urn:ietf:params:xml:ns:rgp-1.0
-          rgp-1.0.xsd">
-           <rgp:restore op="report">
-             <rgp:report>
-               <rgp:preData>Pre-delete registration data goes here.
-               Both XML and free text are allowed.</rgp:preData>
-               <rgp:postData>Post-restore registration data goes here.
-               Both XML and free text are allowed.</rgp:postData>
-               <rgp:delTime>2019-10-10T22:00:00.0Z</rgp:delTime>
-               <rgp:resTime>2019-10-20T22:00:00.0Z</rgp:resTime>
-               <rgp:resReason>Registrant error.</rgp:resReason>
-               <rgp:statement>This registrar has not restored the
-               Registered Name in order to assume the rights to use
-               or sell the Registered Name for itself or for any
-               third party.</rgp:statement>
-               <rgp:statement>The information in this report is
-               true to best of this registrars knowledge, and this
-               registrar acknowledges that intentionally supplying
-               false information in this report shall constitute an
-               incurable material breach of the
-               Registry-Registrar Agreement.</rgp:statement>
-               <rgp:other>Supporting information goes
-               here.</rgp:other>
-             </rgp:report>
-           </rgp:restore>
-         </rgp:update>
-         <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-           <namestoreExt:subProduct>dot{{ tld }}</namestoreExt:subProduct>
-         </namestoreExt:namestoreExt>
-       </extension>
+       <poll op="req"/>
        <clTRID>{{ clTRID }}</clTRID>
      </command>
    </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
+            $messages = (int)($r->response->msgQ->attributes()->count ?? 0);
+            $last_id = (int)($r->response->msgQ->attributes()->id ?? 0);
+            $qDate = (string)($r->response->msgQ->qDate ?? '');
+            $last_msg = (string)($r->response->msgQ->msg ?? '');
+            $event = [];
+            if (isset($r->response->resData)) {
+                $ev = $r->response->resData->children('http://www.domreg.lt/epp/xml/domreg-event-1.0')->eventData;
+                if ($ev) {
+                    $event = [
+                        'obType'  => (string)($ev->obType ?? ''),
+                        'object'  => (string)($ev->object ?? ''),
+                        'notice'  => (string)($ev->notice ?? ''),
+                    ];
+                }
+            }
 
             $return = array(
                 'code' => $code,
-                'msg' => $msg
+                'msg' => $msg,
+                'messages' => $messages,
+                'last_id' => $last_id,
+                'qDate' => $qDate,
+                'last_msg' => $last_msg,
+                'event' => $event
             );
         } catch (\Exception $e) {
             $return = array(
