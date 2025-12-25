@@ -110,7 +110,6 @@ Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EP
 | Registry | TLDs | Status | Project |
 |----------|----------|----------|----------|
 | EPP Registrar | any | ✅ | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
-| CoCCA | any | ✅ | [whmcs-epp-cocca](https://github.com/getnamingo/whmcs-epp-cocca) |
 | EURid | .eu | ✅ | [whmcs-epp-eurid](https://github.com/getpinga/whmcs-epp-eurid) |
 | Hostmaster | .ua | ✅ | [whmcs-epp-ua](https://github.com/getpinga/whmcs-epp-ua) |
 | Verisign | all | ✅ | [registrar-whmcs-epp-verisign](https://github.com/getnamingo/registrar-whmcs-epp-verisign) |
