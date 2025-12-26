@@ -40,7 +40,39 @@ function connectEpp(?string $registry = null) {
     }
 
     $epp = EppRegistryFactory::create($registry);
-    $epp->setLogPath(__DIR__ . '/../log');
+    // --------------------------------------------------
+    // LOGGING (disabled by default)
+    // --------------------------------------------------
+    $epp->disableLogging();
+    /*
+    |--------------------------------------------------------------------------
+    | OPTION 1: Enable file logging (Monolog)
+    |--------------------------------------------------------------------------
+    | Requires:
+    |   composer require monolog/monolog
+    |
+    | Uncomment to enable
+    */
+    // if (class_exists(\Monolog\Logger::class)) {
+    //     $epp->setLogPath(__DIR__ . '/../log');
+    // }
+    /*
+    |--------------------------------------------------------------------------
+    | OPTION 2: Use any custom PSR-3 logger
+    |--------------------------------------------------------------------------
+    |
+    | Example:
+    |
+    | $logger = new \Your\Logger();
+    | $epp->setLogger($logger);
+    */
+    /*
+    |--------------------------------------------------------------------------
+    | OPTION 3: Re-enable logging later (runtime)
+    |--------------------------------------------------------------------------
+    |
+    | $epp->setLogger(new \Psr\Log\NullLogger()); // still no-op
+    */
 
     $info = [
         // EPP endpoint

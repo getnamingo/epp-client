@@ -13,9 +13,6 @@ namespace Pinga\Tembo\Registries;
 use Pinga\Tembo\Epp;
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
-use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
-use Monolog\Formatter\LineFormatter;
 
 class GenericEpp extends Epp
 {

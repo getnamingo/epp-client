@@ -14,9 +14,6 @@ use Pinga\Tembo\Epp;
 use Pinga\Tembo\EppRegistryInterface;
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
-use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
-use Monolog\Formatter\LineFormatter;
 
 class FiEpp extends Epp
 {

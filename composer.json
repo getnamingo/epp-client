@@ -12,7 +12,10 @@
     "require": {
         "php": "^8.3",
         "ext-xml": "*",
-        "monolog/monolog": "^3.9"
+        "psr/log": "^3.0"
+    },
+    "suggest": {
+        "monolog/monolog": "Enable file-based logging via Monolog (optional)"
     },
     "autoload": {
         "psr-4": {

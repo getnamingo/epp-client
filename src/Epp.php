@@ -12,10 +12,8 @@ namespace Pinga\Tembo;
 
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
-use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
-use Monolog\Handler\StreamHandler;
-use Monolog\Formatter\LineFormatter;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 abstract class Epp implements EppRegistryInterface
 {
@@ -23,6 +21,10 @@ abstract class Epp implements EppRegistryInterface
     protected $isLoggedIn;
     protected $prefix;
     protected string $logPath = __DIR__ . '/../log';
+    protected LoggerInterface $responseLogger;
+    protected LoggerInterface $requestLogger;
+    protected LoggerInterface $commonLogger;
+    protected bool $loggingEnabled = true;
 
     /**
      * Default login extensions.
@@ -40,9 +42,9 @@ abstract class Epp implements EppRegistryInterface
         }
 
         // Create the loggers
-        $this->responseLogger = new Logger('Response');
-        $this->requestLogger  = new Logger('Request');
-        $this->commonLogger   = new Logger('Tembo');
+        $this->responseLogger = new NullLogger();
+        $this->requestLogger  = new NullLogger();
+        $this->commonLogger   = new NullLogger();
 
         $this->initLoggers();
     }
@@ -283,14 +285,61 @@ abstract class Epp implements EppRegistryInterface
     public function setLogPath(string $path): void
     {
         $this->logPath = rtrim($path, '/');
+
+        if (!$this->loggingEnabled) {
+            return;
+        }
+
         $this->initLoggers();
+    }
+
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->loggingEnabled = true;
+        $this->commonLogger   = $logger;
+        $this->requestLogger  = $logger;
+        $this->responseLogger = $logger;
+    }
+
+    public function setLoggers(
+        LoggerInterface $common,
+        ?LoggerInterface $request = null,
+        ?LoggerInterface $response = null
+    ): void {
+        $this->loggingEnabled = true;
+        $this->commonLogger   = $common;
+        $this->requestLogger  = $request  ?? $common;
+        $this->responseLogger = $response ?? $common;
+    }
+
+    public function disableLogging(): void
+    {
+        $this->loggingEnabled = false;
+        $this->commonLogger   = new NullLogger();
+        $this->requestLogger  = new NullLogger();
+        $this->responseLogger = new NullLogger();
     }
 
     protected function initLoggers(): void
     {
+        if (!$this->loggingEnabled) {
+            $this->responseLogger = new NullLogger();
+            $this->requestLogger  = new NullLogger();
+            $this->commonLogger   = new NullLogger();
+            return;
+        }
+
+        if (
+            !class_exists(\Monolog\Logger::class) ||
+            !class_exists(\Monolog\Handler\RotatingFileHandler::class) ||
+            !class_exists(\Monolog\Formatter\LineFormatter::class)
+        ) {
+            return;
+        }
+
         $lineFormat = "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
         $dateFormat = "Y-m-d H:i:s";
-        $formatter  = new LineFormatter($lineFormat, $dateFormat);
+        $formatter  = new \Monolog\Formatter\LineFormatter($lineFormat, $dateFormat);
 
         $this->logPath = rtrim($this->logPath, '/') . '/' . (new \ReflectionClass($this))->getShortName();
 
@@ -298,14 +347,13 @@ abstract class Epp implements EppRegistryInterface
             mkdir($this->logPath, 0750, true);
         }
 
-        // Reset handlers if re-initializing
-        $this->responseLogger->setHandlers([]);
-        $this->requestLogger->setHandlers([]);
-        $this->commonLogger->setHandlers([]);
+        $this->responseLogger = new \Monolog\Logger('Response');
+        $this->requestLogger  = new \Monolog\Logger('Request');
+        $this->commonLogger   = new \Monolog\Logger('Tembo');
 
-        $responseHandler = new RotatingFileHandler($this->logPath . '/response.log', 14, Logger::DEBUG);
-        $requestHandler  = new RotatingFileHandler($this->logPath . '/request.log', 14, Logger::DEBUG);
-        $commonHandler   = new RotatingFileHandler($this->logPath . '/common.log', 14, Logger::DEBUG);
+        $responseHandler = new \Monolog\Handler\RotatingFileHandler($this->logPath . '/response.log', 14);
+        $requestHandler  = new \Monolog\Handler\RotatingFileHandler($this->logPath . '/request.log', 14);
+        $commonHandler   = new \Monolog\Handler\RotatingFileHandler($this->logPath . '/common.log', 14);
 
         $responseHandler->setFormatter($formatter);
         $requestHandler->setFormatter($formatter);
@@ -3139,6 +3187,10 @@ abstract class Epp implements EppRegistryInterface
 
     public function _response_log($content)
     {
+        if (!$this->loggingEnabled) {
+            return;
+        }
+
         $content = $this->maskSensitiveXml((string) $content);
 
         $this->responseLogger->info($content);
@@ -3147,6 +3199,10 @@ abstract class Epp implements EppRegistryInterface
 
     public function _request_log($content)
     {
+        if (!$this->loggingEnabled) {
+            return;
+        }
+
         $content = $this->maskSensitiveXml((string) $content);
 
         $this->requestLogger->info($content);
