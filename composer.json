@@ -11,10 +11,10 @@
     ],
     "require": {
         "php": "^8.3",
-        "ext-xml": "*",
-        "psr/log": "^2.0"
+        "ext-xml": "*"
     },
     "suggest": {
+        "psr/log": "For PSR-3 compatible logging (optional)",
         "monolog/monolog": "Enable file-based logging via Monolog (optional)"
     },
     "autoload": {

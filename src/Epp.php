@@ -12,8 +12,7 @@ namespace Pinga\Tembo;
 
 use Pinga\Tembo\Exception\EppException;
 use Pinga\Tembo\Exception\EppNotConnectedException;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
+use Pinga\Tembo\Internal\NullLogger;
 
 abstract class Epp implements EppRegistryInterface
 {
@@ -21,9 +20,9 @@ abstract class Epp implements EppRegistryInterface
     protected $isLoggedIn;
     protected $prefix;
     protected string $logPath = __DIR__ . '/../log';
-    protected LoggerInterface $responseLogger;
-    protected LoggerInterface $requestLogger;
-    protected LoggerInterface $commonLogger;
+    protected $commonLogger;
+    protected $requestLogger;
+    protected $responseLogger;
     protected bool $loggingEnabled = true;
 
     /**
@@ -296,9 +295,11 @@ abstract class Epp implements EppRegistryInterface
     public function setLogger(LoggerInterface $logger): void
     {
         $this->loggingEnabled = true;
-        $this->commonLogger   = $logger;
-        $this->requestLogger  = $logger;
-        $this->responseLogger = $logger;
+        if (is_object($logger) && method_exists($logger, 'info')) {
+            $this->commonLogger   = $logger;
+            $this->requestLogger  = $logger;
+            $this->responseLogger = $logger;
+        }
     }
 
     public function setLoggers(
