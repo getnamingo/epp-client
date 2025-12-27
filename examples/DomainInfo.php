@@ -124,6 +124,39 @@ try
         }
     }
 
+    /**
+     * DNSSEC (secDNS): dsData / keyData (optional)
+     */
+    if (!empty($domainInfo['dsData']) && is_array($domainInfo['dsData'])) {
+        foreach ($domainInfo['dsData'] as $i => $ds) {
+            if (!is_array($ds)) continue;
+
+            $keyTag     = $ds['keyTag'] ?? null;
+            $alg        = $ds['alg'] ?? null;
+            $digestType = $ds['digestType'] ?? null;
+            $digest     = $ds['digest'] ?? null;
+
+            if ($keyTag !== null && $alg !== null && $digestType !== null && $digest !== null) {
+                echo "DS #".($i+1).": keyTag={$keyTag}, alg={$alg}, digestType={$digestType}, digest={$digest}" . PHP_EOL;
+            }
+        }
+    }
+
+    if (!empty($domainInfo['keyData']) && is_array($domainInfo['keyData'])) {
+        foreach ($domainInfo['keyData'] as $i => $kd) {
+            if (!is_array($kd)) continue;
+
+            $flags    = $kd['flags'] ?? null;
+            $protocol = $kd['protocol'] ?? null;
+            $alg      = $kd['alg'] ?? null;
+            $pubKey   = $kd['pubKey'] ?? null;
+
+            if ($flags !== null && $protocol !== null && $alg !== null && $pubKey !== null) {
+                echo "DNSKEY #".($i+1).": flags={$flags}, protocol={$protocol}, alg={$alg}, pubKey={$pubKey}" . PHP_EOL;
+            }
+        }
+    }
+
     $logout = $epp->logout();
 
     echo 'Logout Result: ' . $logout['code'] . ': ' . $logout['msg'][0] . PHP_EOL;

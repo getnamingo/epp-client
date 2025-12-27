@@ -1657,10 +1657,11 @@ abstract class Epp implements EppRegistryInterface
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
-            $r = $this->writeRequest($xml);
-            $code = (int)$r->response->result->attributes()->code;
-            $msg = (string)$r->response->result->msg;
-            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
+            $resp = $this->writeRequest($xml);
+            $code = (int)$resp->response->result->attributes()->code;
+            $msg  = (string)$resp->response->result->msg;
+
+            $r = $resp->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
             $name = (string)$r->name;
             $roid = (string)$r->roid;
             $status = array();
@@ -1697,6 +1698,35 @@ abstract class Epp implements EppRegistryInterface
             $exDate = (string)$r->exDate;
             $trDate = (string)$r->trDate;
             $authInfo = (string)$r->authInfo->pw;
+            
+            $dsData = [];
+            $keyData = [];
+
+            $ext = $resp->response->extension ?? null;
+
+            if ($ext) {
+                $sec = $ext->children('urn:ietf:params:xml:ns:secDNS-1.1')->infData ?? null;
+
+                if ($sec) {
+                    foreach ($sec->dsData ?? [] as $ds) {
+                        $dsData[] = [
+                            'keyTag'     => (int)$ds->keyTag,
+                            'alg'        => (int)$ds->alg,
+                            'digestType' => (int)$ds->digestType,
+                            'digest'     => (string)$ds->digest,
+                        ];
+                    }
+
+                    foreach ($sec->keyData ?? [] as $kd) {
+                        $keyData[] = [
+                            'flags'     => (int)$kd->flags,
+                            'protocol'  => (int)$kd->protocol,
+                            'alg'       => (int)$kd->alg,
+                            'pubKey'    => (string)$kd->pubKey,
+                        ];
+                    }
+                }
+            }
 
             $return = array(
                 'code' => $code,
@@ -1717,6 +1747,14 @@ abstract class Epp implements EppRegistryInterface
                 'trDate' => $trDate,
                 'authInfo' => $authInfo
             );
+            
+            if (!empty($dsData)) {
+                $return['dsData'] = $dsData;
+            }
+
+            if (!empty($keyData)) {
+                $return['keyData'] = $keyData;
+            }
         } catch (\Exception $e) {
             $return = array(
                 'error' => $e->getMessage()
