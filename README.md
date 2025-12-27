@@ -152,10 +152,23 @@ composer require pinga/tembo
 
 #### 3. Configure Access to the Registry
 
-Edit the `examples/Connection.php` file to configure your registry access credentials.
+Edit the `examples/Connection.php` file to configure your registry access credentials (host, port, username, password, certificates, etc.).
+
 If the registry requires SSL certificates and you don't have them, refer to the troubleshooting section for steps to generate `cert.pem` and `key.pem`.
 
-#### Using the EPP Client
+#### 4. Detailed Logging
+
+The EPP Client supports full logging of raw XML commands and responses via a PSR-3 compatible logger. For detailed debugging (including `<command>` and `<response>` XML), we recommend using Monolog.
+
+Run this in your project root:
+
+```bash
+composer require monolog/monolog
+```
+
+Check `examples/Connection.php` for details on how to enable logger. Make sure you have `use` statements for the selected package.
+
+### Using the EPP Client
 
 - You can use the commands provided in the `examples` directory to interact with the EPP server.
 
