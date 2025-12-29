@@ -103,14 +103,13 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 
 ### Integration with billing systems
 
-Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getpinga/tembo/issues) in this project and let us know.
+Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getnamingo/epp-client/issues) in this project and let us know.
 
 #### WHMCS
 
 | Registry | TLDs | Status | Project |
 |----------|----------|----------|----------|
 | EPP Registrar | any | ✅ | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
-| EURid | .eu | ✅ | [whmcs-epp-eurid](https://github.com/getpinga/whmcs-epp-eurid) |
 
 #### FOSSBilling
 
