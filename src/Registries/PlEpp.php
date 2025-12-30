@@ -749,14 +749,6 @@ class PlEpp extends Epp
             $to[] = htmlspecialchars($params['firstname'] . ' ' . $params['lastname']);
             $from[] = '/{{ org }}/';
             $to[] = htmlspecialchars($params['companyname']);
-            if (!empty($params['companyid'])) {
-                $from[] = '/{{ orgid }}/';
-                $to[] = htmlspecialchars($params['companyid']);
-            }
-            if (!empty($params['vat'])) {
-                $from[] = '/{{ vat }}/';
-                $to[] = htmlspecialchars($params['vat']);
-            }
             $from[] = '/{{ street1 }}/';
             $to[] = htmlspecialchars($params['address1']);
             $from[] = '/{{ street2 }}/';
@@ -783,6 +775,9 @@ class PlEpp extends Epp
             $to[] = htmlspecialchars($this->prefix . '-contact-create-' . $microtime);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
+            $individual = empty($params['companyname']) ? '1' : '0';
+            $from[] = '/{{ individual }}/';
+            $to[]   = $individual;
             $xml = preg_replace($from, $to, '<?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1
  epp-2.1.xsd">
@@ -812,12 +807,12 @@ class PlEpp extends Epp
         </contact:authInfo>
       </contact:create>
     </create>
-<extension>
- <extcon:create xmlns:extcon="http://www.dns.pl/nask-epp-schema/extcon-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/extcon-2.1 
-  extcon-2.1.xsd">
- <extcon:individual>1</extcon:individual>
- </extcon:create>
- </extension>
+    <extension>
+      <extcon:create xmlns:extcon="http://www.dns.pl/nask-epp-schema/extcon-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/extcon-2.1 
+      extcon-2.1.xsd">
+        <extcon:individual>{{ individual }}</extcon:individual>
+      </extcon:create>
+    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
@@ -2078,14 +2073,14 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
         <domain:period unit="y">{{ regperiod }}</domain:period>
       </domain:renew>
     </renew>
- <extension>
- <extdom:renew
- xmlns:extdom="http://www.dns.pl/nask-epp-schema/extdom-2.1"
- xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/extdom-2.1
- extdom-2.1.xsd">
- <extdom:reactivate/>
- </extdom:renew>
- </extension>
+    <extension>
+      <extdom:renew
+      xmlns:extdom="http://www.dns.pl/nask-epp-schema/extdom-2.1"
+      xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/extdom-2.1
+      extdom-2.1.xsd">
+        <extdom:reactivate/>
+      </extdom:renew>
+    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
