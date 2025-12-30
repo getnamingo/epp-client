@@ -106,7 +106,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getnamingo/epp-client/issues) in this project and let us know.
 
 | Platform | TLDs | Project |
-|----------|----------|----------|----------|
+|----------|----------|----------|
 | WHMCS EPP Registrar | any | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
 | FOSSBilling EPP Registrar | any | [fossbilling-epp-registrar](https://github.com/getnamingo/fossbilling-epp-registrar) |
 | FOSSBilling AFNIC | .fr/others | [fossbilling-epp-fr](https://github.com/getpinga/fossbilling-epp-fr) |
