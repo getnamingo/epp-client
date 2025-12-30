@@ -105,22 +105,13 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 
 Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getnamingo/epp-client/issues) in this project and let us know.
 
-#### WHMCS
-
-| Registry | TLDs | Status | Project |
+| Platform | TLDs | Project |
 |----------|----------|----------|----------|
-| EPP Registrar | any | ✅ | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
-
-#### FOSSBilling
-
-| Registry | TLDs | Status | Project |
-|----------|----------|----------|----------|
-| Generic RFC EPP | any | ✅ | [fossbilling-epp-rfc](https://github.com/getpinga/fossbilling-epp-rfc) |
-| AFNIC | .fr/others | ✅ | [fossbilling-epp-fr](https://github.com/getpinga/fossbilling-epp-fr) |
-| Caucasus Online | .ge | ✅ | [fossbilling-epp-ge](https://github.com/getpinga/fossbilling-epp-ge) |
-| FRED | .cz/any | ✅ | [fossbilling-epp-fred](https://github.com/getpinga/fossbilling-epp-fred) |
-| Hostmaster | .ua | ✅ | [fossbilling-epp-ua](https://github.com/getpinga/fossbilling-epp-ua) |
-| Verisign | all | ✅ | [fossbilling-epp-verisign](https://github.com/getnamingo/fossbilling-epp-verisign) |
+| WHMCS EPP Registrar | any | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
+| FOSSBilling EPP Registrar | any | [fossbilling-epp-registrar](https://github.com/getnamingo/fossbilling-epp-registrar) |
+| FOSSBilling AFNIC | .fr/others | [fossbilling-epp-fr](https://github.com/getpinga/fossbilling-epp-fr) |
+| FOSSBilling Caucasus Online | .ge | [fossbilling-epp-ge](https://github.com/getpinga/fossbilling-epp-ge) |
+| FOSSBilling FRED | .cz/any | [fossbilling-epp-fred](https://github.com/getpinga/fossbilling-epp-fred) |
 
 ## Documentation
 
