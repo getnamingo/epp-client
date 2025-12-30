@@ -1137,7 +1137,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             }
             $ns = array();
             $i = 0;
-            foreach ($r->ns->hostObj as $hostObj) {
+            foreach (($r->ns->hostObj ?? []) as $hostObj) {
                 $i++;
                 $ns[$i] = (string)$hostObj;
             }

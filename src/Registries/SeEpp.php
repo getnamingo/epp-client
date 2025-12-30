@@ -201,7 +201,7 @@ class SeEpp extends Epp
             }
             $ns = array();
             $i = 0;
-            foreach ($r->ns->hostObj as $hostObj) {
+            foreach (($r->ns->hostObj ?? []) as $hostObj) {
                 $i++;
                 $ns[$i] = (string)$hostObj;
             }

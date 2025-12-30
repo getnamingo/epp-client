@@ -621,7 +621,7 @@ class ItEpp extends Epp
             }
             $ns = array();
             $i = 0;
-            foreach ($r->ns->hostAttr as $hostAttr) {
+            foreach (($r->ns->hostAttr ?? []) as $hostAttr) {
                 $i++;
                 $ns[$i] = (string)$hostAttr->hostName;
             }
