@@ -109,8 +109,6 @@ Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EP
 |----------|----------|----------|
 | WHMCS EPP Registrar | any | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
 | FOSSBilling EPP Registrar | any | [fossbilling-epp-registrar](https://github.com/getnamingo/fossbilling-epp-registrar) |
-| FOSSBilling Caucasus Online | .ge | [fossbilling-epp-ge](https://github.com/getpinga/fossbilling-epp-ge) |
-| FOSSBilling FRED | .cz/any | [fossbilling-epp-fred](https://github.com/getpinga/fossbilling-epp-fred) |
 
 ## Documentation
 
