@@ -16,6 +16,7 @@ use Pinga\Tembo\Registries\FiEpp;
 use Pinga\Tembo\Registries\FrEpp;
 use Pinga\Tembo\Registries\FredEpp;
 use Pinga\Tembo\Registries\GenericEpp;
+use Pinga\Tembo\Registries\GeEpp;
 use Pinga\Tembo\Registries\GrEpp;
 use Pinga\Tembo\Registries\HkEpp;
 use Pinga\Tembo\Registries\HrEpp;
@@ -49,6 +50,9 @@ class EppRegistryFactory
                 break;
             case 'FRED':
                 return new FredEpp();
+                break;
+            case 'GE':
+                return new GeEpp();
                 break;
             case 'GR':
                 return new GrEpp();

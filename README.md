@@ -63,7 +63,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | Generic RFC EPP | any | | ✅ | |
 | AFNIC | .fr/others | FR | ✅ | |
 | CARNET | .hr | HR | ✅ | |
-| Caucasus Online | .ge | | ✅ | |
+| Caucasus Online | .ge | GE | ✅ | |
 | CentralNic | all | | ✅ | |
 | CoCCA | all | | ✅ | |
 | CORE/Knipp | all | | ✅ | |
