@@ -1223,6 +1223,66 @@ abstract class Epp implements EppRegistryInterface
     }
 
     /**
+     * contactUpdateAuthinfo
+     */
+    public function contactUpdateAuthinfo($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ id }}/';
+            $to[]   = htmlspecialchars($params['contactid']);
+            $from[] = '/{{ authInfo }}/';
+            $to[] = htmlspecialchars($params['authInfo']);
+            $from[] = '/{{ clTRID }}/';
+            $clTRID = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-updateAuthinfo-' . $clTRID);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+ <command>
+   <update>
+     <contact:update
+       xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+       <contact:id>{{ id }}</contact:id>
+       <contact:chg>
+         <contact:authInfo>
+           <contact:pw>{{ authInfo }}</contact:pw>
+         </contact:authInfo>
+       </contact:chg>
+     </contact:update>
+   </update>
+   <clTRID>{{ clTRID }}</clTRID>
+ </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
      * contactUpdateStatus
      */
     public function contactUpdateStatus($params = array())
@@ -1670,7 +1730,7 @@ abstract class Epp implements EppRegistryInterface
             $to[]   = $feeExtXml;
             $from[] = '/{{ clTRID }}/';
             $microtime = str_replace('.', '', round(microtime(1), 3));
-            $to[] = htmlspecialchars($this->prefix . '-domain-checkClaims-' . $microtime);
+            $to[] = htmlspecialchars($this->prefix . '-domain-checkFee-' . $microtime);
             $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
