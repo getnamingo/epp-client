@@ -1527,11 +1527,11 @@ abstract class Epp implements EppRegistryInterface
 
             $i = 0;
             foreach ($r->cd as $cd) {
-                $i++;
                 $domains[$i]['name'] = (string)$cd->name;
                 $availStr = (string)$cd->name->attributes()->avail;
                 $domains[$i]['avail'] = ($availStr === 'true' || $availStr === '1') ? true : false;
                 $domains[$i]['reason'] = (string)$cd->reason;
+                $i++;
             }
 
             $return = array(
@@ -1606,6 +1606,146 @@ abstract class Epp implements EppRegistryInterface
                 'status' => $status,
                 'phase' => $phase,
                 'claimKey' => $claimKey
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * domainCheckFee
+     */
+    public function domainCheckFee($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ name }}/';
+            $to[] = htmlspecialchars($params['domainname']);
+            $from[] = '/{{ currency }}/';
+            $to[] = htmlspecialchars($params['currency']);
+            $from[] = '/{{ command }}/';
+            $to[] = htmlspecialchars($params['command']);
+            $from[] = '/{{ years }}/';
+            $to[] = htmlspecialchars($params['years']);
+
+            $feeNs = ($params['feeVersion'] ?? '0.9') === '1.0'
+                ? 'urn:ietf:params:xml:ns:epp:fee-1.0'
+                : 'urn:ietf:params:xml:ns:fee-0.9';
+
+            if ($feeNs === 'urn:ietf:params:xml:ns:epp:fee-1.0') {
+                // RFC 8748 / fee-1.0
+                $feeExtXml = '
+                  <fee:check xmlns:fee="urn:ietf:params:xml:ns:epp:fee-1.0">
+                    <fee:currency>'. htmlspecialchars($params['currency']) .'</fee:currency>
+                    <fee:command name="'. htmlspecialchars($params['command']) .'">
+                      <fee:period unit="y">'. htmlspecialchars($params['years']) .'</fee:period>
+                    </fee:command>
+                  </fee:check>';
+            } else {
+                // fee-0.9
+                $feeExtXml = '
+                  <fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.9">
+                    <fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">
+                      <fee:objID element="name">'. htmlspecialchars($params['domainname']) .'</fee:objID>
+                      <fee:currency>'. htmlspecialchars($params['currency']) .'</fee:currency>
+                      <fee:command>'. htmlspecialchars($params['command']) .'</fee:command>
+                      <fee:period unit="y">'. htmlspecialchars($params['years']) .'</fee:period>
+                    </fee:object>
+                  </fee:check>';
+            }
+
+            $from[] = '/{{ feeExt }}/';
+            $to[]   = $feeExtXml;
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-domain-checkClaims-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+  <command>
+    <check>
+      <domain:check
+        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
+        xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+        <domain:name>{{ name }}</domain:name>
+      </domain:check>
+    </check>
+    <extension>
+      {{ feeExt }}
+    </extension>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+
+            $f = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->chkData;
+            $i = 0;
+            foreach ($f->cd as $cd) {
+                $domains[$i]['name'] = (string)$cd->name;
+                $availStr = (string)$cd->name->attributes()->avail;
+                $domains[$i]['avail'] = ($availStr === 'true' || $availStr === '1') ? true : false;
+                $domains[$i]['reason'] = (string)$cd->reason;
+                $i++;
+            }
+
+            $feeAmount = null;
+            $currency  = null;
+            $feeClass  = null;
+
+            if ($feeNs === 'urn:ietf:params:xml:ns:epp:fee-1.0') {
+                $feeExt = $r->response->extension->children('urn:ietf:params:xml:ns:epp:fee-1.0');
+                $currency = (string)($feeExt->chkData->currency ?? '');
+
+                foreach ($feeExt->chkData->cd as $cd) {
+                    if ((string)$cd->objID !== $params['domainname']) continue;
+
+                    $feeClass = (string)($cd->class ?? '');
+
+                    foreach ($cd->command as $cmd) {
+                        $attr = $cmd->attributes();
+                        if (!isset($attr['name']) || (string)$attr['name'] !== $params['command']) continue;
+
+                        $feeAmount = (string)($cmd->fee ?? '');
+                        break 2;
+                    }
+                }
+            } else {
+                $feeExt = $r->response->extension->children('urn:ietf:params:xml:ns:fee-0.9');
+
+                foreach ($feeExt->chkData->cd as $cd) {
+                    if ((string)$cd->objID !== $params['domainname']) continue;
+
+                    $feeAmount = (string)($cd->fee ?? '');
+                    $currency  = (string)($cd->currency ?? '');
+                    $feeClass  = (string)($cd->class ?? '');
+                    break;
+                }
+            }
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg,
+                'domains' => $domains,
+                'feeAmount' => $feeAmount,
+                'currency' => $currency,
+                'feeClass' => $feeClass
             );
         } catch (\Exception $e) {
             $return = array(

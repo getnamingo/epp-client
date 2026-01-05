@@ -38,6 +38,7 @@ interface EppRegistryInterface
 
     public function domainCheck(array $params);
     public function domainCheckClaims(array $params);
+    public function domainCheckFee(array $params);
     public function domainInfo(array $params);
     public function domainCreate(array $params);
     public function domainCreateDNSSEC(array $params);

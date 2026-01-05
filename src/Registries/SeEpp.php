@@ -147,6 +147,21 @@ class SeEpp extends Epp
     }
 
     /**
+     * domainCheckFee
+     */
+    public function domainCheckFee($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Fee extension not supported!");
+    }
+
+    /**
      * domainInfo
      */
     public function domainInfo($params = array())

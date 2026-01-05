@@ -542,7 +542,7 @@ class VrsnEpp extends Epp
 
         return $return;
     }
-    
+
     /**
      * domainCheckClaims
      */
@@ -556,6 +556,21 @@ class VrsnEpp extends Epp
         }
 
         throw new EppException("Launch extension not supported!");
+    }
+
+    /**
+     * domainCheckFee
+     */
+    public function domainCheckFee($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Fee extension not supported!");
     }
 
     /**

@@ -763,7 +763,7 @@ class LtEpp extends Epp
 
         return $return;
     }
-    
+
     /**
      * domainCheckClaims
      */
@@ -776,7 +776,22 @@ class LtEpp extends Epp
             );
         }
 
-        throw new EppException("Claims extension is not supported!");
+        throw new EppException("Launch extension not supported!");
+    }
+
+    /**
+     * domainCheckFee
+     */
+    public function domainCheckFee($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Fee extension not supported!");
     }
 
     /**

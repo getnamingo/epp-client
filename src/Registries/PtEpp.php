@@ -261,6 +261,21 @@ xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd
     }
 
     /**
+     * domainCheckFee
+     */
+    public function domainCheckFee($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        throw new EppException("Fee extension not supported!");
+    }
+
+    /**
      * domainTransfer
      */
     public function domainTransfer($params = array())
