@@ -25,10 +25,11 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 |----------|----------|----------|----------|----------|
 | check | ✅ | ✅ | ✅ | login ✅ |
 | checkClaims | ✅ | N/A | N/A | logout ✅ |
-| info | ✅ | ✅ | ✅ | poll ✅ |
-| create | ✅ | ✅ | ✅ | hello ✅ |
-| createDNSSEC | ✅ | N/A | N/A | keep-alive ✅ |
-| createClaims | ✅ | N/A | N/A | new password ✅ |
+| checkFee | ✅ | N/A | N/A | poll ✅ |
+| info | ✅ | ✅ | ✅ | hello ✅ |
+| create | ✅ | ✅ | ✅ | keep-alive ✅ |
+| createDNSSEC | ✅ | N/A | N/A | new password ✅ |
+| createClaims | ✅ | N/A | N/A | |
 | update | N/A | ✅ | ✅ | |
 | updateNS | ✅ | N/A | N/A | |
 | updateContact | ✅ | N/A | N/A | |
