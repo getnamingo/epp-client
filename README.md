@@ -111,24 +111,48 @@ Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EP
 | WHMCS EPP Registrar | any | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
 | FOSSBilling EPP Registrar | any | [fossbilling-epp-registrar](https://github.com/getnamingo/fossbilling-epp-registrar) |
 
-## Documentation
-
-### Installation
+## Installation
 
 To begin, follow these steps for setting up the EPP Client. This installation process is optimized for a VPS running Ubuntu 22.04/24.04 or Debian 12/13.
 
-#### 1. Install PHP
+### 1. Install PHP
 
-Make sure PHP is installed on your server. Use the appropriate commands for your operating system.
+#### Ubuntu 22.04 / 24.04
 
 ```bash
-apt install -y curl software-properties-common ufw
-add-apt-repository ppa:ondrej/php
 apt update
-apt install -y bzip2 composer git net-tools php8.3 php8.3-bz2 php8.3-cli php8.3-common php8.3-curl php8.3-fpm php8.3-gd php8.3-gmp php8.3-imagick php8.3-intl php8.3-mbstring php8.3-opcache php8.3-readline php8.3-soap php8.3-xml unzip wget whois
+apt install -y curl software-properties-common ufw
+
+add-apt-repository -y ppa:ondrej/php
+apt update
+
+apt install -y \
+  composer git net-tools unzip wget whois \
+  php8.3-bz2 php8.3-cli php8.3-common php8.3-curl \
+  php8.3-gmp php8.3-intl php8.3-mbstring php8.3-xml
 ```
 
-#### 2. Install Tembo Package
+#### Debian 12 / 13
+
+```bash
+apt update
+apt install -y ca-certificates curl gnupg lsb-release ufw
+
+curl -fsSL https://packages.sury.org/php/apt.gpg \
+  | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" \
+  > /etc/apt/sources.list.d/sury-php.list
+
+apt update
+
+apt install -y \
+  composer git net-tools unzip wget whois \
+  php8.3-bz2 php8.3-cli php8.3-common php8.3-curl \
+  php8.3-gmp php8.3-intl php8.3-mbstring php8.3-xml
+```
+
+### 2. Install Tembo Package
 
 Navigate to your project directory and run the following command:
 
@@ -136,13 +160,13 @@ Navigate to your project directory and run the following command:
 composer require pinga/tembo
 ```
 
-#### 3. Configure Access to the Registry
+### 3. Configure Access to the Registry
 
 Edit the `examples/Connection.php` file to configure your registry access credentials (host, port, username, password, certificates, etc.).
 
 If the registry requires SSL certificates and you don't have them, refer to the troubleshooting section for steps to generate `cert.pem` and `key.pem`.
 
-#### 4. Detailed Logging
+### 4. Detailed Logging
 
 The EPP Client supports full logging of raw XML commands and responses via a PSR-3 compatible logger. For detailed debugging (including `<command>` and `<response>` XML), we recommend using Monolog.
 
@@ -154,15 +178,15 @@ composer require monolog/monolog
 
 Check `examples/Connection.php` for details on how to enable logger. Make sure you have `use` statements for the selected package.
 
-### Using the EPP Client
+## Using the EPP Client
 
 - You can use the commands provided in the `examples` directory to interact with the EPP server.
 
 - Alternatively, include the `Connection.php` file in your project and build your custom application using the `EppClient` class and its functions.
 
-### Troubleshooting
+## Troubleshooting
 
-#### EPP Server Access
+### EPP Server Access
 
 If you're unsure whether your system can access the EPP server, you can test the connection using OpenSSL. Try one or both of the following commands:
 
@@ -180,7 +204,7 @@ openssl s_client -connect epp.example.com:700 -CAfile cacert.pem -cert cert.pem 
 
 Replace `epp.example.com` with your EPP server's hostname and adjust the paths to your certificate files (`cacert.pem`, `cert.pem`, and `key.pem`) as needed. These tests can help identify issues with SSL/TLS configurations or network connectivity.
 
-#### Generating an SSL Certificate and Key
+### Generating an SSL Certificate and Key
 
 If you do not have an SSL certificate and private key for secure communication with the registry, you can generate one using OpenSSL.
 
@@ -191,7 +215,7 @@ openssl req -new -x509 -key key.pem -out cert.pem -days 365
 
 **Note:** For production environments, it's recommended to use a certificate signed by a trusted Certificate Authority (CA) instead of a self-signed certificate.
 
-#### EPP-over-HTTPS Issues
+### EPP-over-HTTPS Issues
 
 If you experience login or other issues with EPP-over-HTTPS registries such as `.eu`, `.fi`, `.hr`, `.it`, or `.lv`, it might be caused by a corrupted or outdated cookie file. Follow these steps to fix it:
 
@@ -201,23 +225,23 @@ rm -f /tmp/eppcookie.txt
 
 After deleting the cookie file, try logging in again. This will force the creation of a new cookie file and may resolve the issue.
 
-#### Need More Help?
+### Need More Help?
 
 If the steps above don’t resolve your issue, refer to the EPP Client logs (`/path/to/tembo/log`) to identify the specific problem.
 
-### Benchmarking an EPP Server
+## Benchmarking an EPP Server
 
 To run tests against an EPP server using the Namingo EPP client, follow these steps:
 
-#### 1. Configure Your Connection
+### 1. Configure Your Connection
 
 Edit the file `benchmark/Connection.php` - this file should contain the connection details for the server you want to test. It uses the same format as `examples/Connection.php`.
 
-#### 2. Run the Benchmark
+### 2. Run the Benchmark
 
 From the root directory, run `php benchmark/Benchmark.php` - this will execute a series of domain check commands to test your server’s response and performance.
 
-#### 3. Customize the Benchmark
+### 3. Customize the Benchmark
 
 You can modify `benchmark/Benchmark.php` to:
 - Add your own EPP commands
