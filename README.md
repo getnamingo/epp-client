@@ -1,6 +1,6 @@
 # Namingo EPP Client
 
-An open-source PHP EPP client supporting 40 domain registry backends. Works with any PHP framework and is fully customizable.
+An open-source PHP EPP client supporting 41 domain registry backends. Works with any PHP framework and is fully customizable.
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
@@ -57,7 +57,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (40 backends and counting)
+### Registry Support (41 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
@@ -81,6 +81,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | Identity Digital | all | | ✅ | |
 | IIS | .se, .nu | SE | ✅ | |
 | Internet.ee | .ee | EE | ✅ | |
+| ISNIC | .is | IS | ✅ | |
 | IT.COM | all | | ✅ | |
 | HKIRC | .hk | HK | ✅ | |
 | NASK | .pl | PL | ✅ | |
@@ -152,7 +153,7 @@ apt install -y \
   php8.3-gmp php8.3-intl php8.3-mbstring php8.3-xml
 ```
 
-### 2. Install Tembo Package
+### 2. Install EPP Client Package
 
 Navigate to your project directory and run the following command:
 
@@ -264,7 +265,7 @@ Your feedback and inquiries are invaluable to Namingo's evolutionary journey. If
 
 We appreciate your involvement and patience as Namingo continues to grow and adapt.
 
-## 💖 Support This Project
+## Support This Project
 
 If you find Namingo EPP Client useful, consider donating:
 
