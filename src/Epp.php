@@ -45,7 +45,7 @@ abstract class Epp implements EppRegistryInterface
         $this->requestLogger  = new NullLogger();
         $this->commonLogger   = new NullLogger();
 
-        $this->initLoggers();
+        $this->loggingEnabled = false;
     }
 
     /**
@@ -284,10 +284,7 @@ abstract class Epp implements EppRegistryInterface
     public function setLogPath(string $path): void
     {
         $this->logPath = rtrim($path, '/');
-
-        if (!$this->loggingEnabled) {
-            return;
-        }
+        $this->loggingEnabled = true;
 
         $this->initLoggers();
     }
@@ -324,9 +321,6 @@ abstract class Epp implements EppRegistryInterface
     protected function initLoggers(): void
     {
         if (!$this->loggingEnabled) {
-            $this->responseLogger = new NullLogger();
-            $this->requestLogger  = new NullLogger();
-            $this->commonLogger   = new NullLogger();
             return;
         }
 
