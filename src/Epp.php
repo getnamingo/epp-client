@@ -1998,14 +1998,17 @@ abstract class Epp implements EppRegistryInterface
 
             $add = $rem = array();
             $i = 0;
-            foreach ($r->ns->hostObj as $ns) {
-                $i++;
-                $ns = (string)$ns;
-                if (!$ns) {
-                    continue;
-                }
 
-                $rem["ns{$i}"] = $ns;
+            if (isset($r->ns->hostObj)) {
+                foreach ($r->ns->hostObj as $ns) {
+                    $i++;
+                    $ns = (string)$ns;
+                    if (!$ns) {
+                        continue;
+                    }
+
+                    $rem["ns{$i}"] = $ns;
+                }
             }
 
             foreach ($params as $k => $v) {
