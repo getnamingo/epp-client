@@ -166,7 +166,7 @@ class PlEpp extends Epp
     /**
      * logout
      */
-    public function logout($params = array())
+    public function logout(array $params = []): array
     {
         if (!$this->isLoggedIn) {
             return array(
