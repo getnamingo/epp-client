@@ -270,6 +270,37 @@ class PlEpp extends Epp
     }
 
     /**
+     * hello
+     */
+    public function hello()
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-hello-' . $microtime);
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1 epp-2.1.xsd">
+   <hello/>
+</epp>');
+            $r = $this->writeRequest($xml);
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $r->asXML();
+    }
+
+    /**
      * hostCheck
      */
     public function hostCheck($params = array())
