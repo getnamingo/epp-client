@@ -85,8 +85,27 @@ class PlEpp extends Epp
         $this->_request_log($xml);
         curl_setopt($this->ch, CURLOPT_POST, true);
         curl_setopt($this->ch, CURLOPT_POSTFIELDS, $xml);
-        $r = simplexml_load_string($this->readResponse());
-        if ($r->response->result->attributes()->code >= 2000) {
+
+        $raw = $this->readResponse();
+
+        libxml_use_internal_errors(true);
+        $r = simplexml_load_string($raw);
+        if ($r === false) {
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+
+            $msg = 'Invalid XML response';
+            if (!empty($errors)) {
+                $msg .= ': ' . trim($errors[0]->message);
+            }
+
+            $preview = substr(trim($raw), 0, 500);
+            $msg .= ' | Raw: ' . $preview;
+
+            throw new EppException($msg);
+        }
+
+        if ((int)$r->response->result->attributes()->code >= 2000) {
             throw new EppException($r->response->result->msg);
         }
 
