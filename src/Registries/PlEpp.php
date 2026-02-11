@@ -1899,7 +1899,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = (int)($params['period']);
             $text = '';
             foreach ($params['nss'] as $hostObj) {
-                $text .= "<domain:ns><domain:hostObj>{$hostObj}</domain:hostObj></domain:ns>\n";
+                $text .= '<domain:ns>' . $hostObj . '</domain:ns>' . "\n";
             }
             $from[] = '/{{ hostObjs }}/';
             $to[] = $text;
@@ -2017,7 +2017,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = (int)($params['period']);
             $text = '';
             foreach ($params['nss'] as $hostObj) {
-                $text .= "<domain:ns><domain:hostObj>{$hostObj}</domain:hostObj></domain:ns>\n";
+                $text .= '<domain:ns>' . $hostObj . '</domain:ns>' . "\n";
             }
             $from[] = '/{{ hostObjs }}/';
             $to[] = $text;
