@@ -17,46 +17,63 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class PlEpp extends Epp
 {
+    private string $cookieFile = '';
+    private ?\CurlHandle $ch = null;
+
+    public function __destruct()
+    {
+        $this->disconnect();
+    }
+
     /**
      * connect
      */
     public function connect($params = array())
     {
         $host = (string)$params['host'];
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $host);
         curl_setopt($ch, CURLOPT_PORT, (int)$params['port']);
         curl_setopt($ch, CURLOPT_TIMEOUT, (int)$params['timeout']);
+
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, (bool)$params['verify_peer']);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $params['verify_peer_name'] ? 2 : 0);
         if ($params['cafile']) {
             curl_setopt($ch, CURLOPT_CAINFO, (string)$params['cafile']);
         }
+
         curl_setopt($ch, CURLOPT_SSLCERT, (string)$params['local_cert']);
         curl_setopt($ch, CURLOPT_SSLKEY, (string)$params['local_pk']);
         if ($params['passphrase']) {
             curl_setopt($ch, CURLOPT_SSLKEYPASSWD, (string)$params['passphrase']);
         }
+
         if (!empty($params['bind']) && !empty($params['bindip'])) {
             $iface = preg_replace('/:\d+$/', '', (string)$params['bindip']);
             curl_setopt($ch, CURLOPT_INTERFACE, $iface);
         }
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_COOKIEJAR, sys_get_temp_dir() . '/eppcookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEFILE, sys_get_temp_dir() . '/eppcookie.txt');
-        $this->resource = curl_exec($ch);
 
-        if ($this->resource === false) {
-            $errmsg = curl_error($ch);
-            $errno  = curl_errno($ch);
-            throw new EppException("Cannot connect to server '{$host}': [{$errno}] {$errmsg}");
-        }
+        $this->cookieFile = sys_get_temp_dir() . '/eppcookie-' . bin2hex(random_bytes(8)) . '.txt';
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookieFile);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookieFile);
+        $cookie = $this->cookieFile;
+        register_shutdown_function(static function () use ($cookie) {
+            if ($cookie !== '' && is_file($cookie)) {
+                @unlink($cookie);
+            }
+        });
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: text/xml; charset=utf-8']);
 
         $this->ch = $ch;
-        return $this->readResponse();
+
+        return true;
     }
 
     /**
@@ -64,15 +81,20 @@ class PlEpp extends Epp
      */
     public function readResponse()
     {
-        try {
-            $return = curl_exec($this->ch);
-            $xml = preg_replace('/></', ">\n<", $return);
-            $this->_response_log($xml);
-        } catch (\EppException $e) {
-            $code = curl_errno($this->ch);
-            $msg = curl_error($this->ch);
-            throw new \EppException($msg, $code);
+        if (!$this->ch instanceof \CurlHandle) {
+            throw new EppNotConnectedException('Not connected');
         }
+
+        $return = curl_exec($this->ch);
+
+        if ($return === false) {
+            $errno  = curl_errno($this->ch);
+            $errmsg = curl_error($this->ch);
+            throw new EppException("cURL error: [{$errno}] {$errmsg}");
+        }
+
+        $xml = preg_replace('/></', ">\n<", $return);
+        $this->_response_log($xml);
 
         return $xml;
     }
@@ -105,8 +127,14 @@ class PlEpp extends Epp
             throw new EppException($msg);
         }
 
-        if ((int)$r->response->result->attributes()->code >= 2000) {
-            throw new EppException($r->response->result->msg);
+        $result = $r->response->result ?? null;
+
+        if ($result !== null) {
+            $code = (int)($result->attributes()->code ?? 0);
+
+            if ($code >= 2000) {
+                throw new EppException("EPP error {$code}: " . (string)($result->msg ?? ''));
+            }
         }
 
         return $r;
@@ -115,9 +143,19 @@ class PlEpp extends Epp
     /**
      * disconnect
      */
-    public function disconnect()
+    public function disconnect(): bool
     {
-        return curl_close($this->ch);
+        if ($this->ch instanceof \CurlHandle) {
+            @curl_close($this->ch);
+            $this->ch = null;
+        }
+
+        if ($this->cookieFile !== '' && is_file($this->cookieFile)) {
+            @unlink($this->cookieFile);
+            $this->cookieFile = '';
+        }
+
+        return true;
     }
 
     /**
@@ -224,6 +262,8 @@ class PlEpp extends Epp
             $return = array(
                 'error' => $e->getMessage()
             );
+        } finally {
+            $this->disconnect();
         }
 
         return $return;
@@ -1136,7 +1176,7 @@ class PlEpp extends Epp
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-eppschema/epp-2.1 epp-2.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1 epp-2.1.xsd">
   <command>
     <info>
       <domain:info
@@ -1240,7 +1280,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = htmlspecialchars($this->prefix . '-domain-info-' . $clTRID);
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-eppschema/epp-2.1 epp-2.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1 epp-2.1.xsd">
       <command>
         <info>
           <domain:info
@@ -1828,7 +1868,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = (int)($params['period']);
             $text = '';
             foreach ($params['nss'] as $hostObj) {
-                $text .= '<domain:ns>' . $hostObj . '</domain:ns>' . "\n";
+                $text .= "<domain:ns><domain:hostObj>{$hostObj}</domain:hostObj></domain:ns>\n";
             }
             $from[] = '/{{ hostObjs }}/';
             $to[] = $text;
@@ -1946,7 +1986,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = (int)($params['period']);
             $text = '';
             foreach ($params['nss'] as $hostObj) {
-                $text .= '<domain:ns>' . $hostObj . '</domain:ns>' . "\n";
+                $text .= "<domain:ns><domain:hostObj>{$hostObj}</domain:hostObj></domain:ns>\n";
             }
             $from[] = '/{{ hostObjs }}/';
             $to[] = $text;
@@ -2065,7 +2105,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
             $to[] = '';
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-eppschema/epp-2.1 epp-2.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1 epp-2.1.xsd">
   <command>
     <info>
       <domain:info

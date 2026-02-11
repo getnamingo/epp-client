@@ -216,16 +216,6 @@ openssl req -new -x509 -key key.pem -out cert.pem -days 365
 
 **Note:** For production environments, it's recommended to use a certificate signed by a trusted Certificate Authority (CA) instead of a self-signed certificate.
 
-### EPP-over-HTTPS Issues
-
-If you experience login or other issues with EPP-over-HTTPS registries such as `.eu`, `.fi`, `.hr`, `.it`, or `.lv`, it might be caused by a corrupted or outdated cookie file. Follow these steps to fix it:
-
-```bash
-rm -f /tmp/eppcookie.txt
-```
-
-After deleting the cookie file, try logging in again. This will force the creation of a new cookie file and may resolve the issue.
-
 ### Need More Help?
 
 If the steps above don’t resolve your issue, refer to the EPP Client logs (`/path/to/tembo/log`) to identify the specific problem.
