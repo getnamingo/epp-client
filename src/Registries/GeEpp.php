@@ -1,8 +1,8 @@
 <?php
 /**
- * Tembo EPP client library
+ * Namingo EPP client library
  *
- * Written in 2023-2025 by Taras Kondratyuk (https://namingo.org)
+ * Written in 2023-2026 by Taras Kondratyuk (https://namingo.org)
  * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
  *
  * @license MIT
@@ -21,12 +21,12 @@ class GeEpp extends Epp
     {
         $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:domain-1.0');
         $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:contact-1.0');
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:host-1.0');
     }
 
     protected function addLoginExtensions(\XMLWriter $xml): void
     {
         $xml->startElement('svcExtension');
+        $xml->writeElement('extURI', 'http://nic.ge/epp/xml/schema/contact-ext-1.0');
         $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
         $xml->endElement(); // svcExtension
     }
@@ -471,6 +471,116 @@ class GeEpp extends Epp
                 'name' => $name,
                 'crDate' => $crDate,
                 'exDate' => $exDate
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
+    }
+
+    /**
+     * domainInfo
+     */
+    public function domainInfo($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ domainname }}/';
+            $to[] = htmlspecialchars($params['domainname']);
+            $from[] = '/{{ authInfo }}/';
+            $authInfo = (isset($params['authInfoPw']) ? "<domain:authInfo>\n<domain:pw><![CDATA[{$params['authInfoPw']}]]></domain:pw>\n</domain:authInfo>" : '');
+            $to[] = $authInfo;
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-domain-info-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+  <command>
+    <info>
+      <domain:info
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
+       xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+        <domain:name hosts="all">{{ domainname }}</domain:name>
+        {{ authInfo }}
+      </domain:info>
+    </info>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+            $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->infData;
+            $name = (string)$r->name;
+            $roid = (string)$r->roid;
+            $status = array();
+            $i = 0;
+            foreach ($r->status as $e) {
+                $i++;
+                $status[$i] = (string)$e->attributes()->s;
+            }
+            $registrant = (string)$r->registrant;
+            $contact = array();
+            $i = 0;
+            foreach ($r->contact as $e) {
+                $i++;
+                $contact[$i]['type'] = (string)$e->attributes()->type;
+                $contact[$i]['id'] = (string)$e;
+            }
+            $ns = array();
+            $i = 0;
+            foreach (($r->ns->hostAttr ?? []) as $hostAttr) {
+                $i++;
+                $ns[$i] = (string)$hostAttr->hostName;
+            }
+            $host = array();
+            $i = 0;
+            foreach ($r->host as $hostname) {
+                $i++;
+                $host[$i] = (string)$hostname;
+            }
+            $clID = (string)$r->clID;
+            $crID = (string)$r->crID;
+            $crDate = (string)$r->crDate;
+            $upID = (string)$r->upID;
+            $upDate = (string)$r->upDate;
+            $exDate = (string)$r->exDate;
+            $trDate = (string)$r->trDate;
+            $authInfo = (string)$r->authInfo->pw;
+
+            $return = array(
+                'code' => $code,
+                'msg' => $msg,
+                'name' => $name,
+                'roid' => $roid,
+                'status' => $status,
+                'registrant' => $registrant,
+                'contact' => $contact,
+                'ns' => $ns,
+                'host' => $host,
+                'clID' => $clID,
+                'crID' => $crID,
+                'crDate' => $crDate,
+                'upID' => $upID,
+                'upDate' => $upDate,
+                'exDate' => $exDate,
+                'trDate' => $trDate,
+                'authInfo' => $authInfo
             );
         } catch (\Exception $e) {
             $return = array(
