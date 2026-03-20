@@ -1987,5 +1987,6 @@ class UaEpp extends Epp
         }
         
         throw new EppException("Domain restore report not supported!");
+    }
 
 }
