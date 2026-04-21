@@ -22,8 +22,126 @@ class PtEpp extends Epp
         $xml->startElement('svcExtension');
         $xml->writeElement('extURI', 'http://eppdev.dns.pt/schemas/ptcontact-1.0');
         $xml->writeElement('extURI', 'http://eppdev.dns.pt/schemas/ptdomain-1.0');
+        $xml->writeElement('extURI', 'http://eppdev.dns.pt/schemas/ptnis2-1.0');
         $xml->writeElement('extURI', 'urn:ietf:params:xml:ns:secDNS-1.1');
         $xml->endElement(); // svcExtension
+    }
+
+    /**
+     * contactInfo
+     */
+    public function contactInfo($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return array(
+                'code' => 2002,
+                'msg' => 'Command use error'
+            );
+        }
+
+        $return = array();
+        try {
+            $from = $to = array();
+            $from[] = '/{{ id }}/';
+            $to[] = htmlspecialchars($params['contact']);
+            $from[] = '/{{ authInfo }}/';
+            $authInfo = (isset($params['authInfoPw']) ? "<contact:authInfo>\n<contact:pw><![CDATA[{$params['authInfoPw']}]]></contact:pw>\n</contact:authInfo>" : '');
+            $to[] = $authInfo;
+            $from[] = '/{{ clTRID }}/';
+            $microtime = str_replace('.', '', round(microtime(1), 3));
+            $to[] = htmlspecialchars($this->prefix . '-contact-info-' . $microtime);
+            $from[] = "/<\w+:\w+>\s*<\/\w+:\w+>\s+/ims";
+            $to[] = '';
+            $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
+  <command>
+    <info>
+      <contact:info
+       xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+        <contact:id>{{ id }}</contact:id>
+        {{ authInfo }}
+      </contact:info>
+    </info>
+    <clTRID>{{ clTRID }}</clTRID>
+  </command>
+</epp>');
+            $r = $this->writeRequest($xml);
+            $code = (int)$r->response->result->attributes()->code;
+            $msg = (string)$r->response->result->msg;
+            $extension = $r->response->extension ?? null;
+            $r = $r->response->resData->children('urn:ietf:params:xml:ns:contact-1.0')->infData[0];
+
+            foreach ($r->postalInfo as $e) {
+                $name = (string)$e->name;
+                $org = (string)$e->org;
+                $street = (string)$e->addr->street;
+                $city = (string)$e->addr->city;
+                $state = (string)$e->addr->sp;
+                $postal = (string)$e->addr->pc;
+                $country = (string)$e->addr->cc;
+            }
+            $id = (string)$r->id;
+            $status = array();
+            $i = 0;
+            foreach ($r->status as $e) {
+                $i++;
+                $status[$i] = (string)$e->attributes()->s;
+            }
+            $roid = (string)$r->roid;
+            $voice = (string)$r->voice;
+            $email = (string)$r->email;
+            $crDate = (string)$r->crDate;
+            $upDate = (string)$r->upDate;
+            $validated = null;
+            $validatedDate = null;
+            $vat = null;
+            $mobile = null;
+
+            if ($extension) {
+                $ptnis2 = $extension->children('http://eppdev.dns.pt/schemas/ptnis2-1.0')->infData[0] ?? null;
+                if ($ptnis2) {
+                    $validated = isset($ptnis2->validated) ? (string)$ptnis2->validated : null;
+                    $validatedDate = isset($ptnis2->validatedDate) ? (string)$ptnis2->validatedDate : null;
+                }
+
+                $ptcontact = $extension->children('http://eppdev.dns.pt/schemas/ptcontact-1.0')->infData[0] ?? null;
+                if ($ptcontact) {
+                    $vat = isset($ptcontact->vat) ? (string)$ptcontact->vat : null;
+                    $mobile = isset($ptcontact->mobile) ? (string)$ptcontact->mobile : null;
+                }
+            }
+
+            $return = array(
+                'id' => $id,
+                'roid' => $roid,
+                'code' => $code,
+                'status' => $status,
+                'msg' => $msg,
+                'name' => $name,
+                'org' => $org,
+                'street' => $street,
+                'city' => $city,
+                'state' => $state,
+                'postal' => $postal,
+                'country' => $country,
+                'voice' => $voice,
+                'email' => $email,
+                'crDate' => $crDate,
+                'upDate' => $upDate,
+                'validated' => $validated,
+                'validatedDate' => $validatedDate,
+                'vat' => $vat,
+                'mobile' => $mobile
+            );
+        } catch (\Exception $e) {
+            $return = array(
+                'error' => $e->getMessage()
+            );
+        }
+
+        return $return;
     }
 
     /**
@@ -78,6 +196,10 @@ class PtEpp extends Epp
             $to[] = htmlspecialchars($params['email']);
             $from[] = '/{{ authInfo }}/';
             $to[] = htmlspecialchars($params['authInfoPw']);
+            $from[] = '/{{ validated }}/';
+            $to[] = htmlspecialchars($params['validated']);
+            $from[] = '/{{ validatedDate }}/';
+            $to[] = htmlspecialchars($params['validatedDate']);
             $from[] = '/{{ clTRID }}/';
             $microtime = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-contact-create-' . $microtime);
@@ -114,13 +236,16 @@ class PtEpp extends Epp
         </contact:authInfo>
       </contact:create>
     </create>
-<extension>
- <ptcontact:create xmlns:ptcontact="http://eppdev.dns.pt/schemas/ptcontact-1.0"
-xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd">
- <ptcontact:vat>{{ vat }}</ptcontact:vat>
- <ptcontact:mobile>{{ phonenumber }}</ptcontact:mobile>
- </ptcontact:create>
- </extension>
+    <extension>
+      <ptcontact:create xmlns:ptcontact="http://eppdev.dns.pt/schemas/ptcontact-1.0" xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd">
+        <ptcontact:vat>{{ vat }}</ptcontact:vat>
+        <ptcontact:mobile>{{ phonenumber }}</ptcontact:mobile>
+      </ptcontact:create>
+      <ptnis2:create xmlns:ptnis2="http://eppdev.dns.pt/schemas/ptnis2-1.0" xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptnis2-1.0 ptnis2-1.0.xsd">
+        <ptnis2:validated>{{ validated }}</ptnis2:validated>
+        <ptnis2:validatedDate>{{ validatedDate }}</ptnis2:validatedDate>
+      </ptnis2:create>
+    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
@@ -186,6 +311,10 @@ xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd
             $to[] = htmlspecialchars($params['fullphonenumber']);
             $from[] = '/{{ email }}/';
             $to[] = htmlspecialchars($params['email']);
+            $from[] = '/{{ validated }}/';
+            $to[] = htmlspecialchars($params['validated']);
+            $from[] = '/{{ validatedDate }}/';
+            $to[] = htmlspecialchars($params['validatedDate']);
             $from[] = '/{{ clTRID }}/';
             $microtime = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-contact-update-' . $microtime);
@@ -219,12 +348,15 @@ xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd
         </contact:chg>
       </contact:update>
     </update>
- <extension>
- <ptcontact:update xmlns:ptcontact="http://eppdev.dns.pt/schemas/ptcontact-1.0"
-xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd">
- <ptcontact:mobile>{{ voice }}</ptcontact:mobile>
- </ptcontact:update>
- </extension>
+    <extension>
+      <ptcontact:update xmlns:ptcontact="http://eppdev.dns.pt/schemas/ptcontact-1.0" xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptcontact-1.0 ptcontact-1.0.xsd">
+        <ptcontact:mobile>{{ voice }}</ptcontact:mobile>
+      </ptcontact:update>
+      <ptnis2:update xmlns:ptnis2="http://eppdev.dns.pt/schemas/ptnis2-1.0" xsi:schemaLocation="http://eppdev.dns.pt/schemas/ptnis2-1.0 ptnis2-1.0.xsd">
+        <ptnis2:validated>{{ validated }}</ptnis2:validated>
+        <ptnis2:validatedDate>{{ validatedDate }}</ptnis2:validatedDate>
+      </ptnis2:update>
+    </extension>
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
