@@ -1,11 +1,11 @@
 <?php
 /**
- * Tembo EPP client library
+ * Namingo EPP Client
  *
- * Written in 2023 by Taras Kondratyuk (https://getpinga.com)
+ * (c) 2023–2026 Namingo Team (https://namingo.org)
  * Based on phprri by Bigwern/phprri and DENIC
  *
- * @license MIT
+ * MIT License
  */
 
 namespace Pinga\Tembo;

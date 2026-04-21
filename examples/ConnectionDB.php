@@ -1,11 +1,11 @@
 <?php
 /**
- * Tembo EPP client test file
+ * Namingo EPP Client
  *
- * Written in 2023-2025 by Taras Kondratyuk (https://namingo.org)
- * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
+ * (c) 2023–2026 Namingo Team (https://namingo.org)
+ * Based on https://github.com/xpanel/epp-bundle by Lilian Rudenco
  *
- * @license MIT
+ * MIT License
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -103,6 +103,13 @@ function connectEpp(?string $registry = null) {
         'passphrase' => $result['passphrase'],
         'allow_self_signed' => true,
 
+        // Default login extensions
+        'loginObjects' => [
+            'urn:ietf:params:xml:ns:domain-1.0',
+            'urn:ietf:params:xml:ns:contact-1.0',
+            'urn:ietf:params:xml:ns:host-1.0',
+        ],
+
         // Per-registry login extensions
         'loginExtensions' => [
             'urn:ietf:params:xml:ns:secDNS-1.1',
@@ -110,6 +117,10 @@ function connectEpp(?string $registry = null) {
             // e.g. 'urn:ietf:params:xml:ns:fee-0.7',
         ],
     ];
+
+    if (!empty($info['loginObjects'])) {
+        $epp->setLoginObjects($info['loginObjects']);
+    }
 
     if (!empty($info['loginExtensions'])) {
         $epp->setLoginExtensions($info['loginExtensions']);

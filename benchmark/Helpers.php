@@ -1,11 +1,11 @@
 <?php
 /**
- * PlexEPP: EPP server benchmark
+ * Namingo EPP Client
  *
- * Written in 2025 by Taras Kondratyuk (https://namingo.org)
- * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
+ * (c) 2023–2026 Namingo Team (https://namingo.org)
+ * Based on https://github.com/xpanel/epp-bundle by Lilian Rudenco
  *
- * @license MIT
+ * MIT License
  */
 
 // Function to generate random strings

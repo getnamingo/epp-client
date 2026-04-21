@@ -1,11 +1,11 @@
 <?php
 /**
- * Namingo EPP client library
+ * Namingo EPP Client
  *
- * Written in 2023-2025 by Taras Kondratyuk (https://namingo.org)
- * Based on xpanel/epp-bundle written in 2019 by Lilian Rudenco (info@xpanel.com)
+ * (c) 2023–2026 Namingo Team (https://namingo.org)
+ * Based on https://github.com/xpanel/epp-bundle by Lilian Rudenco
  *
- * @license MIT
+ * MIT License
  */
 
 namespace Pinga\Tembo;
@@ -24,6 +24,16 @@ abstract class Epp implements EppRegistryInterface
     protected $requestLogger;
     protected $responseLogger;
     protected bool $loggingEnabled = true;
+
+    /**
+     * Default login objects.
+     * Can be overridden via setLoginObjects()
+     */
+    protected array $loginObjects = [
+        'urn:ietf:params:xml:ns:domain-1.0',
+        'urn:ietf:params:xml:ns:contact-1.0',
+        'urn:ietf:params:xml:ns:host-1.0',
+    ];
 
     /**
      * Default login extensions.
@@ -256,9 +266,13 @@ abstract class Epp implements EppRegistryInterface
 
     protected function addLoginObjects(\XMLWriter $xml): void
     {
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:domain-1.0');
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:contact-1.0');
-        $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:host-1.0');
+        if (empty($this->loginObjects)) {
+            return;
+        }
+
+        foreach ($this->loginObjects as $uri) {
+            $xml->writeElement('objURI', $uri);
+        }
     }
 
     protected function addLoginExtensions(\XMLWriter $xml): void
@@ -274,6 +288,11 @@ abstract class Epp implements EppRegistryInterface
         }
 
         $xml->endElement();
+    }
+
+    public function setLoginObjects(array $objURIs): void
+    {
+        $this->loginObjects = $objURIs;
     }
 
     public function setLoginExtensions(array $extURIs): void
