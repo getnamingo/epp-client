@@ -12,7 +12,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Pinga\Tembo\EppRegistryFactory;
 
-function connectEpp(?string $registry = null) {
+function connectEpp2(?string $registry = null) {
     // Registry profile to use (see README for available registry codes, e.g. 'generic', 'SE', 'UA')
     $registry ??= 'generic';
 
@@ -124,6 +124,6 @@ function connectEpp(?string $registry = null) {
     return $epp;
 }
 
-function connect(?string $registry = null) {
-    return connectEpp($registry);
+function connect2(?string $registry = null) {
+    return connectEpp2($registry);
 }

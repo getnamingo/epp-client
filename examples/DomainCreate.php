@@ -16,6 +16,11 @@
  *  with:
  *    require_once __DIR__ . '/Connection2.php';
  *
+ * And update the connection call:
+ *    $epp = connect();
+ * to:
+ *    $epp = connect2();
+ *
  * This allows testing with two separate credentials
  * without changing the code logic.
  */
