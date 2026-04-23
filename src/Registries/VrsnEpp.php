@@ -482,9 +482,6 @@ class VrsnEpp extends Epp
             $tld_text = '';
             foreach ($params['domains'] as $name) {
                 $text .= '<domain:name>' . $name . '</domain:name>' . "\n";
-                $parts = explode('.', $name);
-                $tld = end($parts);
-                $tld_text .= '<namestoreExt:subProduct>' . $tld . '</namestoreExt:subProduct>' . "\n";
             }
             $from[] = '/{{ names }}/';
             $to[] = $text;
@@ -509,7 +506,7 @@ class VrsnEpp extends Epp
     </check>
     <extension>
       <namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">
-         {{ tld }}
+        <namestoreExt:subProduct>dotCOM</namestoreExt:subProduct>
       </namestoreExt:namestoreExt>
     </extension>
     <clTRID>{{ clTRID }}</clTRID>
