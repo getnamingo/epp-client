@@ -155,10 +155,28 @@ apt install -y \
 
 ### 2. Install EPP Client Package
 
-Navigate to your project directory and run the following command:
+#### 2.1 Standalone (clone repository)
+
+Clone the client and install dependencies:
+
+```bash
+git clone https://github.com/getnamingo/epp-client
+cd epp-client
+composer update
+```
+
+#### 2.2 Install in existing project (Composer)
+
+If you want to use the client inside your own project:
 
 ```bash
 composer require pinga/tembo
+```
+
+Then include Composer’s autoloader in your code:
+
+```php
+require_once __DIR__ . '/vendor/autoload.php';
 ```
 
 ### 3. Configure Access to the Registry
