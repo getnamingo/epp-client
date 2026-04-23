@@ -48,14 +48,14 @@ function connectEpp(?string $registry = null) {
         'passphrase' => '',
         'allow_self_signed' => true,
 
-        // Default login extensions
+        // Default login objects for the generic registry profile
         'loginObjects' => [
             'urn:ietf:params:xml:ns:domain-1.0',
             'urn:ietf:params:xml:ns:contact-1.0',
             'urn:ietf:params:xml:ns:host-1.0',
         ],
 
-        // Per-registry login extensions
+        // Per-registry login extensions for the generic registry profile
         'loginExtensions' => [
             'urn:ietf:params:xml:ns:secDNS-1.1',
             'urn:ietf:params:xml:ns:rgp-1.0',

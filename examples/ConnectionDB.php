@@ -40,18 +40,23 @@ function connectEpp(?string $registry = null) {
     }
 
     $epp = EppRegistryFactory::create($registry);
+
     // --------------------------------------------------
-    // LOGGING (disabled by default)
+    // LOGGING
     // --------------------------------------------------
+
+    // Default: logging disabled
     $epp->disableLogging();
+
     /*
     |--------------------------------------------------------------------------
     | OPTION 1: Enable file logging (Monolog)
     |--------------------------------------------------------------------------
-    | Requires:
-    |   composer require monolog/monolog
-    |
-    | Uncomment to enable
+    | To enable logging:
+    | 1. Install Monolog:
+    |      composer require monolog/monolog
+    | 2. Comment the line above ($epp->disableLogging())
+    | 3. Uncomment the block below
     */
     // if (class_exists(\Monolog\Logger::class)) {
     //     $epp->setLogPath(__DIR__ . '/../log');
@@ -103,14 +108,14 @@ function connectEpp(?string $registry = null) {
         'passphrase' => $result['passphrase'],
         'allow_self_signed' => true,
 
-        // Default login extensions
+        // Default login objects for the generic registry profile
         'loginObjects' => [
             'urn:ietf:params:xml:ns:domain-1.0',
             'urn:ietf:params:xml:ns:contact-1.0',
             'urn:ietf:params:xml:ns:host-1.0',
         ],
 
-        // Per-registry login extensions
+        // Per-registry login extensions for the generic registry profile
         'loginExtensions' => [
             'urn:ietf:params:xml:ns:secDNS-1.1',
             'urn:ietf:params:xml:ns:rgp-1.0',
