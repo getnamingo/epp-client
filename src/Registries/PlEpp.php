@@ -525,43 +525,65 @@ class PlEpp extends Epp
 
         $return = array();
         try {
+            if (empty($params['hostname'])) {
+                return array(
+                    'code' => 2003,
+                    'msg' => 'Required parameter missing: hostname'
+                );
+            }
+
+            if (empty($params['currentipaddress']) && empty($params['newipaddress'])) {
+                return array(
+                    'code' => 2003,
+                    'msg' => 'Required parameter missing: currentipaddress or newipaddress'
+                );
+            }
+
             $from = $to = array();
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['hostname']);
-            $from[] = '/{{ ip1 }}/';
-            $to[] = htmlspecialchars($params['currentipaddress']);
-            $from[] = '/{{ v1 }}/';
-            $to[] = (preg_match('/:/', $params['currentipaddress']) ? 'v6' : 'v4');
-            $from[] = '/{{ ip2 }}/';
-            $to[] = htmlspecialchars($params['newipaddress']);
-            $from[] = '/{{ v2 }}/';
-            $to[] = (preg_match('/:/', $params['newipaddress']) ? 'v6' : 'v4');
+
+            $from[] = '/{{ addBlock }}/';
+            if (!empty($params['newipaddress'])) {
+                $to[] = '<host:add>
+                      <host:addr ip="' . (preg_match('/:/', $params['newipaddress']) ? 'v6' : 'v4') . '">' . htmlspecialchars($params['newipaddress']) . '</host:addr>
+                    </host:add>';
+            } else {
+                $to[] = '';
+            }
+
+            $from[] = '/{{ remBlock }}/';
+            if (!empty($params['currentipaddress'])) {
+                $to[] = '<host:rem>
+                      <host:addr ip="' . (preg_match('/:/', $params['currentipaddress']) ? 'v6' : 'v4') . '">' . htmlspecialchars($params['currentipaddress']) . '</host:addr>
+                    </host:rem>';
+            } else {
+                $to[] = '';
+            }
+
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-host-update-' . $clTRID);
+
             $xml = preg_replace($from, $to, '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1
- epp-2.1.xsd">
-  <command>
-    <update>
-      <host:update
- xmlns:host="http://www.dns.pl/nask-epp-schema/host-2.1"
- xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/host-2.1
- host-2.1.xsd">
-        <host:name>{{ name }}</host:name>
-        <host:add>
-          <host:addr ip="{{ v2 }}">{{ ip2 }}</host:addr>
-        </host:add>
-        <host:rem>
-          <host:addr ip="{{ v1 }}">{{ ip1 }}</host:addr>
-        </host:rem>
-      </host:update>
-    </update>
-    <clTRID>{{ clTRID }}</clTRID>
-  </command>
-</epp>');
+            <epp xmlns="http://www.dns.pl/nask-epp-schema/epp-2.1"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/epp-2.1
+             epp-2.1.xsd">
+              <command>
+                <update>
+                  <host:update
+                   xmlns:host="http://www.dns.pl/nask-epp-schema/host-2.1"
+                   xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/host-2.1
+                   host-2.1.xsd">
+                    <host:name>{{ name }}</host:name>
+                    {{ addBlock }}
+                    {{ remBlock }}
+                  </host:update>
+                </update>
+                <clTRID>{{ clTRID }}</clTRID>
+              </command>
+            </epp>');
             $r = $this->writeRequest($xml);
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;

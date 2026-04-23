@@ -14,10 +14,16 @@ try
 {
     $epp = connect();
 
+    // Default behaviour:
+    // - Replace IP: provide both currentipaddress and newipaddress
+    //
+    // If supported by the registry:
+    // - Add only: provide newipaddress only
+    // - Remove only: provide currentipaddress only
     $hostUpdate = $epp->hostUpdate([
         'hostname'          => 'ns1.test.example',
-        'currentipaddress'  => '4.4.4.4',
-        'newipaddress'      => '8.8.8.8',
+        'currentipaddress'  => '8.8.8.8',
+        'newipaddress'      => '4.4.4.4',
     ]);
 
     if (isset($hostUpdate['error'])) {
