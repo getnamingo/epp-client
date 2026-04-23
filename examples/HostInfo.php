@@ -32,11 +32,11 @@ try
      * - sometimes it's a map: ['ok' => '...desc...', 'linked' => '...desc...']
      */
     if (!empty($hostInfo['status'])) {
-        echo 'Status: ';
+        $status = [];
         foreach ((array) $hostInfo['status'] as $k => $v) {
-            echo is_int($k) ? "{$v}, " : "{$k}: {$v}, ";
+            $status[] = is_int($k) ? $v : "{$k}: {$v}";
         }
-        echo PHP_EOL;
+        echo 'Status: ' . implode(', ', $status) . PHP_EOL;
     }
 
     /**
@@ -45,11 +45,11 @@ try
      * - sometimes it's a map: ['v4' => '8.8.8.8', 'v6' => '2001:db8::1']
      */
     if (!empty($hostInfo['addr'])) {
-        echo 'Addr: ';
+        $addr = [];
         foreach ((array) $hostInfo['addr'] as $k => $v) {
-            echo is_int($k) ? "{$v}, " : "{$k}: {$v}, ";
+            $addr[] = is_int($k) ? $v : "{$k}: {$v}";
         }
-        echo PHP_EOL;
+        echo 'Addr: ' . implode(', ', $addr) . PHP_EOL;
     }
 
     $fields = [
