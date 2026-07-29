@@ -220,7 +220,7 @@ class GrEpp extends Epp
             $from[] = '/{{ chg }}/';
             $to[] = "<domain:chg><domain:registrant>".htmlspecialchars($params['new_contactid'])."</domain:registrant></domain:chg>\n";
             $from[] = '/{{ ext }}/';
-            $to[] = "<extension><extdomain:update xsi:schemaLocation=\"urn:ics-forth:params:xml:ns:extdomain-1.2 extdomain-1.2.xsd\" xmlns:extdomain=\"urn:ics-forth:params:xml:ns:extdomain-1.2\">
+            $to[] = "<extension><extdomain:update xsi:schemaLocation=\"urn:ics-forth:params:xml:ns:extdomain-1.3 extdomain-1.3.xsd\" xmlns:extdomain=\"urn:ics-forth:params:xml:ns:extdomain-1.3\">
 <extdomain:op>ownerNameChange</extdomain:op>
 </extdomain:update>
 </extension>";    
@@ -315,8 +315,6 @@ class GrEpp extends Epp
                     $to[] = htmlspecialchars($params['authInfoPw']);
                     $from[] = '/{{ registrant }}/';
                     $to[] = htmlspecialchars($params['registrant']);
-                    $from[] = '/{{ new_authInfoPw }}/';
-                    $to[] = htmlspecialchars($params['new_authInfoPw']);
                     $xmltype = 'req';
                     break;
                 case 'query':
@@ -363,9 +361,8 @@ class GrEpp extends Epp
                   </domain:transfer>
                 </transfer>
                 <extension>
-                  <extdomain:transfer xmlns:extdomain="urn:ics-forth:params:xml:ns:extdomain-1.2" xsi:schemaLocation="urn:ics-forth:params:xml:ns:extdomain-1.2 extdomain-1.2.xsd">
+                  <extdomain:transfer xmlns:extdomain="urn:ics-forth:params:xml:ns:extdomain-1.3" xsi:schemaLocation="urn:ics-forth:params:xml:ns:extdomain-1.3 extdomain-1.3.xsd">
                     <extdomain:registrantid>{{ registrant }}</extdomain:registrantid>
-                    <extdomain:newPW>{{ new_authInfoPw }}</extdomain:newPW>
                   </extdomain:transfer>
                 </extension>
                 <clTRID>{{ clTRID }}</clTRID>
@@ -622,7 +619,7 @@ class GrEpp extends Epp
       </domain:delete>
     </delete>
 <extension>
-<extdomain:delete xmlns:extdomain="urn:ics-forth:params:xml:ns:extdomain-1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ics-forth:params:xml:ns:extdomain-1.2 extdomain-1.2.xsd">
+<extdomain:delete xmlns:extdomain="urn:ics-forth:params:xml:ns:extdomain-1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ics-forth:params:xml:ns:extdomain-1.3 extdomain-1.3.xsd">
 <extdomain:pw>{{ password }}</extdomain:pw>
 <extdomain:op>deleteDomain</extdomain:op>
 </extdomain:delete>
