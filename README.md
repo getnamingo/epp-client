@@ -57,7 +57,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (41 backends and counting)
+### Registry Support (42 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
@@ -83,6 +83,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | Internet.ee | .ee | EE | ✅ | |
 | ISNIC | .is | IS | ✅ | |
 | IT.COM | all | | ✅ | |
+| Hello Registry | all | | ✅ | |
 | HKIRC | .hk | HK | ✅ | |
 | NASK | .pl | PL | ✅ | |
 | Namingo | all | | ✅ | |
