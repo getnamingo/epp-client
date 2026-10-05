@@ -131,11 +131,11 @@ apt update
 
 apt install -y \
   composer git net-tools unzip wget whois \
-  php8.3-bz2 php8.3-cli php8.3-common php8.3-curl \
-  php8.3-gmp php8.3-intl php8.3-mbstring php8.3-xml
+  php8.5-bz2 php8.5-cli php8.5-common php8.5-curl \
+  php8.5-gmp php8.5-intl php8.5-mbstring php8.5-xml
 ```
 
-#### Debian 12 / 13
+#### Debian 12 / 13 and Ubuntu 26.04
 
 ```bash
 apt update
@@ -151,8 +151,8 @@ apt update
 
 apt install -y \
   composer git net-tools unzip wget whois \
-  php8.3-bz2 php8.3-cli php8.3-common php8.3-curl \
-  php8.3-gmp php8.3-intl php8.3-mbstring php8.3-xml
+  php8.5-bz2 php8.5-cli php8.5-common php8.5-curl \
+  php8.5-gmp php8.5-intl php8.5-mbstring php8.5-xml
 ```
 
 ### 2. Install EPP Client Package
