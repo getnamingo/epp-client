@@ -1,23 +1,30 @@
 <?php
-/**
+
+/*
  * Namingo EPP Client
  *
- * (c) 2023–2026 Namingo Team (https://namingo.org)
- * Based on https://github.com/xpanel/epp-bundle by Lilian Rudenco
+ * Copyright (c) 2023-2026 Taras Kondratyuk
+ * Copyright (c) 2025-2026 Namingo contributors
+ * Copyright (c) 2026 Terbora Ltd.
  *
- * MIT License
+ * Based in part on xpanel/epp-bundle
+ * Copyright (c) 2017 Lilian Rudenco
+ * https://github.com/xpanel/epp-bundle
+ *
+ * Licensed under the MIT License.
+ * See the LICENSE file distributed with this software for the full license text.
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 require_once __DIR__ . '/Connection.php';
 require_once __DIR__ . '/Helpers.php';
 
 try {
-    // Start timing
     $startTime = microtime(true);
 
     $epp = connect();
 
-    // Create 200 batches of 5 domain checks each
     for ($i = 0; $i < 200; $i++) {
         $domains = [];
         for ($j = 0; $j < 5; $j++) {
@@ -25,20 +32,17 @@ try {
         }
         performDomainCheck($epp, $domains);
     }
-    
-    // Create 10,000 random domain create requests
+
     for ($i = 0; $i < 10000; $i++) {
         $domain = randomDomain();
         performDomainCreate($epp, $domain);
     }
 
-    // Create 10,000 random domain info requests
     for ($i = 0; $i < 10000; $i++) {
         $domain = randomDomain();
         performDomainInfo($epp, $domain);
     }
 
-    // End timing
     $endTime = microtime(true);
     $executionTime = $endTime - $startTime;
     echo 'Total Execution Time: ' . $executionTime . ' seconds' . PHP_EOL;
