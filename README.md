@@ -11,7 +11,7 @@ An open-source PHP EPP client supporting 43 domain registry backends. Works with
 **Namingo EPP** is an open-source PHP library and tool for working with EPP (Extensible Provisioning Protocol). It provides everything you need to connect to EPP servers, manage domains, and build custom integrations.  
 
 - Works as both a **library** for developers and a **ready-to-use client**  
-- Includes **Loom**, **WHMCS** and **FOSSBilling** registrar modules for easy automation  
+- Includes  **WHMCS**, **FOSSBilling**, **Loom**, **PNLCS** and **Blesta** registrar modules for easy automation  
 - Supports EPP extensions and can be **extended to new backends** with minimal effort  
 - Simple to integrate into any PHP project  
 
@@ -107,16 +107,18 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 
 ### Integration with billing systems
 
-Would you like to see any registry added as a WHMCS/FOSSBilling module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getnamingo/epp-client/issues) in this project and let us know.
+Would you like to see any registry added as a WHMCS/FOSSBilling/PNLCS/Blesta module? Or an EPP module for any other billing system? Simply create an [issue](https://github.com/getnamingo/epp-client/issues) in this project and let us know.
 
 | Platform | TLDs | Project |
 |----------|----------|----------|
 | WHMCS EPP Registrar | any | [whmcs-epp-registrar](https://github.com/getnamingo/whmcs-epp-registrar) |
 | FOSSBilling EPP Registrar | any | [fossbilling-epp-registrar](https://github.com/getnamingo/fossbilling-epp-registrar) |
+| PNLCS EPP Registrar | any | [pnlcs-epp-registrar](https://github.com/getnamingo/pnlcs-epp-registrar) |
+| FOSSBilling EPP Registrar | any | [blesta-epp-registrar](https://github.com/getnamingo/blesta-epp-registrar) |
 
 ## Installation
 
-To begin, follow these steps for setting up the EPP Client. This installation process is optimized for a VPS running Ubuntu 22.04/24.04 or Debian 12/13.
+To begin, follow these steps for setting up the EPP Client. This installation process is optimized for a VPS running Ubuntu 22.04/24.04/26.04 or Debian 12/13.
 
 ### 1. Install PHP
 
