@@ -784,7 +784,7 @@ class SiEpp extends Epp
             $from[] = '/{{ id }}/';
             $to[]   = htmlspecialchars($params['contactid']);
             $from[] = '/{{ authInfo }}/';
-            $to[] = htmlspecialchars($params['authInfo']);
+            $to[] = htmlspecialchars(hash('sha256', $params['authInfo']));
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-contact-updateAuthinfo-' . $clTRID);
@@ -1430,7 +1430,7 @@ class SiEpp extends Epp
             $from[] = '/{{ name }}/';
             $to[] = htmlspecialchars($params['domainname']);
             $from[] = '/{{ authInfo }}/';
-            $to[] = htmlspecialchars($params['authInfo']);
+            $to[] = htmlspecialchars(hash('sha256', $params['authInfo']));
             $from[] = '/{{ clTRID }}/';
             $clTRID = str_replace('.', '', round(microtime(1), 3));
             $to[] = htmlspecialchars($this->prefix . '-domain-updateAuthinfo-' . $clTRID);

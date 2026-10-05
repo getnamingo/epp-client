@@ -1,6 +1,6 @@
 # Namingo EPP Client
 
-An open-source PHP EPP client supporting 41 domain registry backends. Works with any PHP framework and is fully customizable.
+An open-source PHP EPP client supporting 43 domain registry backends. Works with any PHP framework and is fully customizable.
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
