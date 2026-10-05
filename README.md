@@ -57,12 +57,13 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | TMCH | ✅ |
 | REGRR | ❌ |
 
-### Registry Support (42 backends and counting)
+### Registry Support (43 backends and counting)
 
 | Registry | TLDs | Extension | Status | TODO |
 |----------|----------|----------|----------|----------|
 | Generic RFC EPP | any | | ✅ | |
 | AFNIC | .fr/others | FR | ✅ | |
+| ARNES | .si | SI | ✅ | |
 | CARNET | .hr | HR | ✅ | |
 | Caucasus Online | .ge | GE | ✅ | |
 | CentralNic | all | | ✅ | |
@@ -269,8 +270,6 @@ Your feedback and inquiries are invaluable to Namingo's evolutionary journey. If
 - **Discord**: Or chat with us on our [Discord](https://discord.gg/97R9VCrWgc) channel.
   
 - **GitHub Issues**: For bug reports or feature requests, please use the [Issues](https://github.com/getnamingo/epp-client/issues) section of our GitHub repository.
-
-- **GitHub Discussions**: For general discussions, ideas, or to connect with our community, visit the [Discussion](https://github.com/getnamingo/epp-client/discussions) page on our GitHub project.
 
 We appreciate your involvement and patience as Namingo continues to grow and adapt.
 
