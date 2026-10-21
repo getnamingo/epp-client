@@ -95,7 +95,7 @@ With Namingo EPP you can start small, customize as you go, and adapt it to the s
 | .PT | .pt | PT | ✅ | |
 | Registro.it | .it | IT | ✅ | |
 | Regtons | all | | ✅ | |
-| RoTLD | .ro | | ✅ | |
+| RoTLD | .ro | RO | ✅ | |
 | RyCE | all | | ✅ | |
 | SIDN | all | | ✅ | |
 | SWITCH | .ch, .li | | ✅ | |

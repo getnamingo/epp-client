@@ -37,6 +37,7 @@ use Pinga\Tembo\Registries\MxEpp;
 use Pinga\Tembo\Registries\NoEpp;
 use Pinga\Tembo\Registries\PlEpp;
 use Pinga\Tembo\Registries\PtEpp;
+use Pinga\Tembo\Registries\RoEpp;
 use Pinga\Tembo\Registries\SeEpp;
 use Pinga\Tembo\Registries\SiEpp;
 use Pinga\Tembo\Registries\UaEpp;
@@ -97,6 +98,9 @@ class EppRegistryFactory
                 break;
             case 'PT':
                 return new PtEpp();
+                break;
+            case 'RO':
+                return new RoEpp();
                 break;
             case 'SE':
                 return new SeEpp();
