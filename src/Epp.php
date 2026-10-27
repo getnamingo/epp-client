@@ -150,6 +150,24 @@ abstract class Epp implements EppRegistryInterface
     }
 
     /**
+     * Insert optional raw EPP extension elements.
+     */
+    protected function insertExtensions(string $xml, array $extensions = []): string
+    {
+        if (empty($extensions)) {
+            return $xml;
+        }
+
+        $content = implode("\n", $extensions);
+
+        if (str_contains($xml, '</extension>')) {
+            return str_replace('</extension>', $content . "\n</extension>", $xml);
+        }
+
+        return str_replace('<clTRID>', "<extension>\n{$content}\n</extension>\n<clTRID>", $xml);
+    }
+
+    /**
      * disconnect
      */
     public function disconnect()
@@ -2668,7 +2686,7 @@ abstract class Epp implements EppRegistryInterface
     <clTRID>{{ clTRID }}</clTRID>
   </command>
 </epp>');
-            $r = $this->writeRequest($xml);
+            $r = $this->writeRequest($this->insertExtensions($xml, $params['extensions'] ?? []));
             $code = (int)$r->response->result->attributes()->code;
             $msg = (string)$r->response->result->msg;
             $r = $r->response->resData->children('urn:ietf:params:xml:ns:domain-1.0')->creData;

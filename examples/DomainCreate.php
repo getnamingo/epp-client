@@ -115,6 +115,25 @@ try
         // AUTH-INFO PASSWORD
         // ------------------------------------------------------------------
         'authInfoPw' => 'Domainpw123@',
+
+        // ------------------------------------------------------------------
+        // OPTIONAL EPP EXTENSIONS
+        // ------------------------------------------------------------------
+        // Uncomment and adjust only if supported by the registry.
+        /*
+        'extensions' => [
+            // Fee extension (RFC 8748)
+            '<fee:create xmlns:fee="urn:ietf:params:xml:ns:epp:fee-1.0">
+                <fee:currency>USD</fee:currency>
+                <fee:fee>5.00</fee:fee>
+            </fee:create>',
+
+            // Allocation Token extension (RFC 8495)
+            '<allocationToken:allocationToken xmlns:allocationToken="urn:ietf:params:xml:ns:allocationToken-1.0">
+                abc123
+            </allocationToken:allocationToken>',
+        ],
+        */
     ];
 
     $domainCreate = $epp->domainCreate($params);
