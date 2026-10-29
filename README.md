@@ -122,29 +122,11 @@ To begin, follow these steps for setting up the EPP Client. This installation pr
 
 ### 1. Install PHP
 
-#### Ubuntu 22.04 / 24.04
-
-```bash
-apt update
-apt install -y curl software-properties-common ufw
-
-add-apt-repository -y ppa:ondrej/php
-apt update
-
-apt install -y \
-  composer git net-tools unzip wget whois \
-  php8.5-bz2 php8.5-cli php8.5-common php8.5-curl \
-  php8.5-gmp php8.5-intl php8.5-mbstring php8.5-xml
-```
-
-#### Debian 12 / 13 and Ubuntu 26.04
-
 ```bash
 apt update
 apt install -y ca-certificates curl gnupg lsb-release ufw
 
-curl -fsSL https://packages.sury.org/php/apt.gpg \
-  | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
+curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
 
 echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" \
   > /etc/apt/sources.list.d/sury-php.list
