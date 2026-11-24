@@ -268,3 +268,28 @@ If you find Namingo EPP Client useful, consider donating:
 ## Licensing
 
 Namingo EPP Client is licensed under the MIT License.
+
+# Balance info
+
+Use `examples/BalanceInfo.php` for the same method on every registry profile:
+
+```php
+$balance = $epp->balanceInfo();
+```
+
+- **Generic/Namingo Registry:** EPP Balance 0.4; include
+  `urn:ietf:params:xml:ns:epp:balance-0.4` among the login **object** URIs
+  (already configured in `examples/Connection.php`).
+- **UA (Hostmaster):** Hostmaster Balance 1.0; set the registrar contract via
+  `$epp->setBalanceContract('YOUR-CONTRACT')` in `Connection.php` before
+  connecting (or call `balanceInfo(['contract' => 'YOUR-CONTRACT'])`).
+- **Other built-in profiles:** return EPP-style code `2102` (not supported);
+  no balance request is sent.
+
+Successful calls return `code`, `msg`, `balance`, `currency`,
+`balanceAvailable`, `cashBalance`, `creditLine`,
+`executionLimit`, `notificationThreshold`, `contract`,
+`contractUntil`, `status`, and `balanceDate`. Amounts are decimal
+**strings**, never floats. Registry-specific unavailable fields are `null`;
+notably Hostmaster's mapping does not provide a currency. Protocol/transport
+errors return an `error` key, consistent with other client methods.

@@ -26,6 +26,7 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class RoEpp extends Epp
 {
+    use UnsupportedBalance;
     protected function addLoginObjects(\XMLWriter $xml): void
     {
         $xml->writeElement('objURI', 'http://www.rotld.ro/xml/epp/domain-1.0');

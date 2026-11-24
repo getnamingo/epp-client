@@ -29,6 +29,7 @@ interface EppRegistryInterface
     public function login(array $params);
     public function logout(array $params);
     public function hello();
+    public function balanceInfo(array $params);
 
     public function hostCheck(array $params);
     public function hostInfo(array $params);

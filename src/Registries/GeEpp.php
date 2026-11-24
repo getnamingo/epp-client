@@ -26,6 +26,7 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class GeEpp extends Epp
 {
+    use UnsupportedBalance;
     protected function addLoginObjects(\XMLWriter $xml): void
     {
         $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:domain-1.0');

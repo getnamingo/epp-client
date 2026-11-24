@@ -26,6 +26,7 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class ItEpp extends Epp
 {
+    use UnsupportedBalance;
     private string $cookieFile = '';
     private ?\CurlHandle $ch = null;
 

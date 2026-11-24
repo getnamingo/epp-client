@@ -23,9 +23,14 @@ use Pinga\Tembo\EppRegistryFactory;
 
 function connectEpp(?string $registry = null) {
     // Registry profile to use (see README for available registry codes, e.g. 'generic', 'SE', 'UA')
-    $registry ??= 'generic';
+    $registry ??= 'generic'; // e.g. 'UA'; chosen here for every example.
 
     $epp = EppRegistryFactory::create($registry);
+
+    // Only Hostmaster .UA needs this for balanceInfo(); set your actual contract.
+    // if ($registry === 'UA') {
+    //     $epp->setBalanceContract('YOUR-ACTUAL-UA-CONTRACT');
+    // }
 
     // --------------------------------------------------
     // LOGGING
@@ -99,6 +104,7 @@ function connectEpp(?string $registry = null) {
             'urn:ietf:params:xml:ns:domain-1.0',
             'urn:ietf:params:xml:ns:contact-1.0',
             'urn:ietf:params:xml:ns:host-1.0',
+            'urn:ietf:params:xml:ns:epp:balance-0.4',
         ],
 
         // Per-registry login extensions for the generic registry profile

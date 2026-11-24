@@ -33,6 +33,62 @@ abstract class Epp implements EppRegistryInterface
     protected $requestLogger;
     protected $responseLogger;
     protected bool $loggingEnabled = true;
+    protected ?string $balanceContract = null;
+
+    /**
+     * Contract identifier for registries such as Hostmaster .UA.
+     * The generic Balance extension does not require a contract.
+     */
+    public function setBalanceContract(string $contract): void
+    {
+        $this->balanceContract = $contract;
+    }
+
+    /**
+     * Retrieve account balance using the regext Balance 0.4 mapping.
+     * Monetary values are strings to preserve precision. Unknown fields are null.
+     */
+    public function balanceInfo($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return ['code' => 2002, 'msg' => 'Command use error'];
+        }
+
+        $namespace = 'urn:ietf:params:xml:ns:epp:balance-0.4';
+        $clTRID = htmlspecialchars($this->prefix . '-balance-info-' . str_replace('.', '', (string)microtime(true)), ENT_XML1, 'UTF-8');
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'
+            . '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><info>'
+            . '<balance:info xmlns:balance="' . $namespace . '"/>'
+            . '</info><clTRID>' . $clTRID . '</clTRID></command></epp>';
+
+        try {
+            $response = $this->writeRequest($xml);
+            $result = $response->response;
+            $data = $result->resData->children($namespace)->infData;
+            if (!isset($data->balance)) {
+                throw new EppException('Balance response missing balance:infData/balance');
+            }
+            $balance = $data->balance;
+
+            return [
+                'code' => (int)$result->result->attributes()->code,
+                'msg' => (string)$result->result->msg,
+                'currency' => (string)$balance->currency,
+                'balance' => (string)$balance->cashBalance,
+                'balanceAvailable' => (string)$balance->balanceAvailable,
+                'creditLine' => (string)$balance->creditLine,
+                'cashBalance' => (string)$balance->cashBalance,
+                'executionLimit' => isset($balance->executionLimit) ? (string)$balance->executionLimit : null,
+                'notificationThreshold' => isset($balance->notificationThreshold) ? (string)$balance->notificationThreshold : null,
+                'contract' => null,
+                'contractUntil' => null,
+                'status' => null,
+                'balanceDate' => null,
+            ];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
 
     /**
      * Default login objects.

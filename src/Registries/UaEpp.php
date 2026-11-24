@@ -26,6 +26,57 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class UaEpp extends Epp
 {
+    /**
+     * Hostmaster .UA Balance 1.0 requires a registrar contract identifier.
+     * Configure it via setBalanceContract() or the optional contract parameter.
+     */
+    public function balanceInfo($params = array())
+    {
+        if (!$this->isLoggedIn) {
+            return ['code' => 2002, 'msg' => 'Command use error'];
+        }
+
+        $contract = (string)($params['contract'] ?? $this->balanceContract ?? '');
+        if ($contract === '') {
+            return ['error' => 'Hostmaster .UA balance info requires a contract number'];
+        }
+
+        $namespace = 'http://hostmaster.ua/epp/balance-1.0';
+        $clTRID = htmlspecialchars($this->prefix . '-balance-info-' . str_replace('.', '', (string)microtime(true)), ENT_XML1, 'UTF-8');
+        $contractXml = htmlspecialchars($contract, ENT_XML1, 'UTF-8');
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'
+            . '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><info>'
+            . '<balance:info xmlns:balance="' . $namespace . '"><balance:contract>'
+            . $contractXml . '</balance:contract></balance:info>'
+            . '</info><clTRID>' . $clTRID . '</clTRID></command></epp>';
+
+        try {
+            $response = $this->writeRequest($xml);
+            $result = $response->response;
+            $data = $result->resData->children($namespace)->infData;
+            if (!isset($data->balance)) {
+                throw new EppException('Hostmaster .UA balance response is missing balance:infData/balance');
+            }
+            return [
+                'code' => (int)$result->result->attributes()->code,
+                'msg' => (string)$result->result->msg,
+                'currency' => null, // Hostmaster does not include a currency in this mapping.
+                'balance' => (string)$data->balance,
+                'balanceAvailable' => null,
+                'creditLine' => null,
+                'cashBalance' => (string)$data->balance,
+                'executionLimit' => null,
+                'notificationThreshold' => null,
+                'contract' => (string)$data->contract,
+                'contractUntil' => isset($data->contractUntil) ? (string)$data->contractUntil : null,
+                'status' => isset($data->status) ? (string)$data->status->attributes()->s : null,
+                'balanceDate' => isset($data->balance) ? (string)$data->balance->attributes()->bdate : null,
+            ];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
     protected function addLoginObjects(\XMLWriter $xml): void
     {
         $xml->writeElement('objURI', 'urn:ietf:params:xml:ns:epp-1.0');

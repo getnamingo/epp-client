@@ -26,6 +26,7 @@ use Pinga\Tembo\Exception\EppNotConnectedException;
 
 class FiEpp extends Epp
 {
+    use UnsupportedBalance;
     protected function addLoginExtensions(\XMLWriter $xml): void
     {
         $xml->startElement('svcExtension');
